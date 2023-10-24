@@ -2,8 +2,7 @@ import torch
 from torch import nn
 from torchinfo import summary
 
-from comformer import ComformerBlock, SelfAttentionPooling
-from loss_fn import AMSoftmax
+from .modules import ComformerBlock, SelfAttentionPooling
 
 import logging
 logger = logging.getLogger(__name__)
