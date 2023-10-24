@@ -2,6 +2,9 @@ import torch
 import torch.nn as nn
 from torchinfo import summary
 
+import logging
+logger = logging.getLogger(__name__)
+
 class Transpose(nn.Module):
     """ Wrapper class of torch.transpose() for Sequential module. """
     def __init__(self, shape: tuple):
@@ -14,7 +17,7 @@ class Transpose(nn.Module):
 class ResidualConnectionModule(nn.Module):
     """
     Residual Connection Module.
-    outputs = (module(inputs) x module_factor + inputs x input_factor)
+    outputs = (module(inputs) * module_factor + inputs * input_factor)
     """
     def __init__(self, module: nn.Module, module_factor: float = 1.0, input_factor: float = 1.0):
         super().__init__()
@@ -29,7 +32,7 @@ class FeedForwardModule(nn.Module):
     """
     Feed Forward Module.
     """
-    def __init__(self, d_model, version: int = 2, dropout: float = 0.1):
+    def __init__(self, d_model, version: int = 2, dropout: float = 0.1, **kargs):
         super().__init__()
 
         if version == 1:
@@ -60,7 +63,7 @@ class ConvolutionModule(nn.Module):
     """
     Convolution Module.
     """
-    def __init__(self, d_model, version: int = 2, kernel_size: int = 31, dropout: float = 0.1):
+    def __init__(self, d_model, version: int = 2, kernel_size: int = 31, dropout: float = 0.1, **kargs):
         super().__init__()
         if version == 1:
             self.sequential = nn.Sequential(
@@ -94,30 +97,45 @@ class ConvolutionModule(nn.Module):
     def forward(self, inputs):
         return self.sequential(inputs)
 
-def residual_connection_module_creater(module: nn.Module, d_model, *, module_factor, input_factor, **kargs):
-    return ResidualConnectionModule(
-            module(d_model=d_model, **kargs),
-            module_factor=module_factor,
-            input_factor=input_factor
+class MultiheadSelfAttention(nn.Module):
+    def __init__(self, d_model, nhead, dropout=0.1, **kargs):
+        super().__init__()
+        self.norm = nn.LayerNorm(d_model)
+        self.self_attn = nn.MultiheadAttention(
+            d_model,
+            nhead,
+            dropout=dropout,
+            batch_first=True,
         )
+
+    def forward(self, x):
+        x = self.norm(x)
+        x = self.self_attn(x, x, x, need_weights=False)[0]
+        return x
 
 class ComformerBlock(nn.Module):
-    def __init__(self, *, d_model, **kargs):
+    def __init__(self, d_model, **kargs):
         super().__init__()
 
-        self.feed_forward_1 = residual_connection_module_creater(FeedForwardModule, d_model, **kargs["feedforward"])
-        
-        self.encoder = nn.TransformerEncoder(
-            nn.TransformerEncoderLayer(
-                d_model=d_model,
-                **kargs["transformer"]
-            ),
-            num_layers=1
+        self.feed_forward_1 = ResidualConnectionModule(
+            FeedForwardModule(d_model, **kargs["feedforward"]),
+            **kargs["feedforward"]["residual_connection"]
         )
 
-        self.conv = residual_connection_module_creater(ConvolutionModule, d_model, **kargs["conv"])
+        self.self_attn = ResidualConnectionModule(
+            MultiheadSelfAttention(d_model, **kargs["multiheadAttention"]),
+            **kargs["multiheadAttention"]["residual_connection"]
+        )
 
-        self.feed_forward_2 = residual_connection_module_creater(FeedForwardModule, d_model, **kargs["feedforward"])
+        self.conv = ResidualConnectionModule(
+            ConvolutionModule(d_model, **kargs["conv"]),
+            **kargs["conv"]["residual_connection"]
+        )
+
+        self.feed_forward_2 = ResidualConnectionModule(
+            FeedForwardModule(d_model, **kargs["feedforward"]),
+            **kargs["feedforward"]["residual_connection"]
+        )
 
     def forward(self, mels):
         """
@@ -128,10 +146,10 @@ class ComformerBlock(nn.Module):
         """
         # out: (batch size, length, d_model)
         out = self.feed_forward_1(mels)
-        out = self.encoder(out)
+        out = self.self_attn(out)
         out = self.conv(out)
         out = self.feed_forward_2(out)
-        
+        out = nn.functional.layer_norm(out, mels.shape[1:])
         return out
 
 class DimSumReducer(nn.Module):
@@ -144,7 +162,7 @@ class DimSumReducer(nn.Module):
 
 class DimMeanReducer(nn.Module):
     def __init__(self, dim):
-        super(DimSumReducer, self).__init__()
+        super(DimMeanReducer, self).__init__()
         self.dim = dim
         
     def forward(self, x):
@@ -156,15 +174,15 @@ class SelfAttentionPooling(nn.Module):
     Original Paper: Self-Attention Encoding and Pooling for Speaker Recognition
     https://arxiv.org/pdf/2008.01077v1.pdf
     """
-    def __init__(self, input_dim, reduce_type="sum"):
+    def __init__(self, input_dim, reducer="sum"):
         super(SelfAttentionPooling, self).__init__()
         # self.W = nn.Linear(input_dim, 1, bias=False)
         self.W = torch.nn.Parameter(torch.empty(input_dim, 1), requires_grad=True)
         torch.nn.init.xavier_uniform_(self.W)
 
-        if reduce_type == "mean":
+        if reducer == "mean":
             self.reducer = DimMeanReducer(1)
-        elif reduce_type =="sum":
+        elif reducer =="sum":
             self.reducer = DimSumReducer(1)
         else:
             raise ValueError("Undifined reducer type!")
@@ -185,60 +203,3 @@ class SelfAttentionPooling(nn.Module):
         att_w = nn.functional.softmax(batch_rep @ self.W, dim=1)
         utter_rep = self.reducer(batch_rep * att_w)
         return utter_rep
-
-class Comformer(nn.Module):
-    def __init__(self, *, input_mels, d_model, post_comformer_dropout=0.1, pred_layer=0, comformer_conf, **kargs):
-        super().__init__()
-
-        self.input_mels = input_mels
-
-        # Project the dimension of features from that of input into d_model.
-        self.prenet = nn.Linear(input_mels, d_model)
-
-        self.layers = nn.ModuleList([ComformerBlock(
-            d_model=d_model,
-            **comformer_conf["submodules"]
-        ) for _ in range(comformer_conf["layers"])])
-
-        self.post_comformer_drop = nn.Dropout(post_comformer_dropout)
-
-        self.self_attention_pooling = SelfAttentionPooling(d_model)
-
-        if comformer_conf["norm_after_cf_block"]:
-            self.layer_norm = nn.LayerNorm(d_model)
-        else:
-            self.layer_norm = nn.Identity()
-
-        if pred_layer > 0:
-            self.pred_layers = nn.ModuleList([
-                nn.Sequential(
-                    nn.Linear(d_model, d_model),
-                    nn.ReLU()
-                ) for _ in range(pred_layer)]
-            )
-        else:
-            self.pred_layers = nn.ModuleList([nn.Identity()])
-
-    def forward(self, mels):
-
-        out = self.prenet(mels)
-
-        for layer in self.layers:
-            out = layer(out)
-
-        out = self.post_comformer_drop(out)
-        out = self.layer_norm(out)
-        stats = self.self_attention_pooling(out)
-
-        # out: (batch, n_spks)
-        for pred_layer in self.pred_layers:
-            stats = pred_layer(stats)
-            
-        return stats
-    
-    @property
-    def device(self):
-        return next(self.parameters()).device
-    
-    def summerize(self, len=128):
-        summary(self, (1, len, self.input_mels), device=self.device, depth=7)
