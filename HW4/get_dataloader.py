@@ -34,7 +34,7 @@ class myDataset(Dataset):
 	def __getitem__(self, index):
 		feat_path, speaker = self.data[index]
 		# Load preprocessed mel-spectrogram.
-		mel = torch.load(os.path.join(self.data_dir, "uttrs" ,feat_path))
+		mel = torch.load(os.path.join(self.data_dir, feat_path))
 
 		# Segmemt mel-spectrogram into "segment_len" frames.
 		if len(mel) > self.segment_len:
@@ -60,7 +60,7 @@ def collate_batch(batch):
 	# mel: (batch size, length, 40)
 	return mel, torch.FloatTensor(speaker).long()
 
-def get_dataloader(data_dir, batch_size, n_workers, **kwargs):
+def get_dataloader(data_dir, batch_size, n_workers=8, **kwargs):
 	"""Generate dataloader"""
 	dataset = myDataset(data_dir, **kwargs)
 	speaker_num = dataset.get_speaker_number()

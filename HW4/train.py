@@ -104,6 +104,10 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logging.info(f"Use {device} now!")
 
+    train_loader, valid_loader, speaker_num = get_dataloader(
+        data_dir=conf["data_dir"],
+        batch_size=conf["batch_size"]
+    )
 
     logging.info(f"Data loaded!")
 
