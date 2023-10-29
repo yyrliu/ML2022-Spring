@@ -117,7 +117,7 @@ class Model(nn.Module):
             depth=depth
         )
 
-def make_model(*, input_mels, d_model, n_class, **conf):
+def make_model(*, input_mels, d_model, n_class, conf):
     """
     Model is constisted of 4 parts:
         1. Prenet: project the dimension of features from that of input into d_model.
