@@ -1,5 +1,6 @@
 **/data/
-**/ckpt/
+**/runs
+*.ckpt
 **/prediction/
 .venv
 **/__pycache__/
