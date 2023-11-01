@@ -3,7 +3,7 @@ from functools import reduce
 import operator
 
 # Load the config dict
-config_dict = {
+conf = {
     "comment": "test",
     "data_dir": "data/Dataset",
     "batch_size": [64, 128, 256],
@@ -14,35 +14,53 @@ config_dict = {
         "input_mels": 40,
         "d_model": [80, 100, 120],
         "conf": {
-            "type": "comformer",
-            "layers": 2,
-            "submodules": {
-                "feedforward": {
-                    "version": 1,
-                    "dropout": 0.1,
-                    "residual_connection": {
-                        "module_factor": 0.5,
-                        "input_factor": 1.0
-                    }
-                },
-                "multiheadAttention": {
-                    "nhead": 2,
-                    "dropout": 0.1,
-                    "residual_connection": {
-                        "module_factor": 0.5,
-                        "input_factor": 1.0
-                    }
-                },
-                "conv": {
-                    "version": 2,
-                    "kernel_size": 31,
-                    "dropout": 0.1,
-                    "residual_connection": {
-                        "module_factor": 1.0,
-                        "input_factor": 1.0
+            "prenet": {
+                "dropout": 0.1
+            },
+            "encoder": {
+                "type": "comformer",
+                "layers": 3,
+                "submodules": {
+                    "feedforward": {
+                        "version": 1,
+                        "dropout": 0.1,
+                        "residual_connection": {
+                            "module_factor": 0.5,
+                            "input_factor": 1.0
+                        }
+                    },
+                    "multiheadAttention": {
+                        "nhead": 2,
+                        "dropout": 0.1,
+                        "residual_connection": {
+                            "module_factor": 0.5,
+                            "input_factor": 1.0
+                        }
+                    },
+                    "conv": {
+                        "version": 2,
+                        "kernel_size": 31,
+                        "dropout": 0.1,
+                        "residual_connection": {
+                            "module_factor": 1.0,
+                            "input_factor": 1.0
+                        }
                     }
                 }
-            }
+            },
+            "pooling": {
+                "type": "self_attention",
+                "reducer": "mean",
+            },
+        }
+    },
+    "loss_fn": {
+        "type": "amsoftmax",
+        "conf": {
+            "m": 0.35,
+            "s": 30,
+            "norm_affine": True,
+            "feat_norm": True
         }
     },
     "optimizer": {
@@ -133,7 +151,7 @@ def _set_dict(dict, keys, value):
     except KeyError:
         raise KeyError(f"Invalid key: path `{'>'.join(keys[:-1])}` does not exist in the dict")
     
-
-import pprint
-pprint.pprint(_generate(config_dict))
-print(len(_generate(config_dict)))
+if __name__ == "__main__":
+    import pprint
+    pprint.pprint(_generate(conf))
+    print(len(_generate(conf)))
