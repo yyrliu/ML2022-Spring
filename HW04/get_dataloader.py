@@ -88,3 +88,14 @@ def get_dataloader(data_dir, batch_size, n_workers=8, **kwargs):
 	)
 
 	return train_loader, valid_loader, speaker_num
+
+if __name__ == "__main__":
+	train_loader, valid_loader, speaker_num = get_dataloader(
+		data_dir="data/Dataset",
+		batch_size=64
+	)
+	
+	print(f"Number of speakers = {speaker_num}")
+	print(f"Number of training instances = {len(train_loader)}")
+	print(f"Number of validation instances = {len(valid_loader)}")
+	

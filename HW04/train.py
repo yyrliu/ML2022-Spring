@@ -5,9 +5,9 @@ from torch.utils.tensorboard import SummaryWriter
 import logging
 from itertools import chain
 
+import config
 from model.model import make_model
 from loss_fn import get_loss_fn
-import model_conf
 from get_dataloader import get_dataloader
 from scheduler import get_scheduler
 
@@ -30,13 +30,51 @@ def model_fn(batch, model, criterion, device):
 
     return loss, accuracy
 
+def train(dataloader, model, criterion, optimizer, scheduler, device, writers):
+    
+    model.train()
+
+    pbar = tqdm(total=len(dataloader), ncols=0, desc="Train", unit=" batch")
+
+    running_loss = 0.0
+    running_accuracy = 0.0
+
+    for i, batch in enumerate(dataloader):
+
+        optimizer.zero_grad()
+        loss, accuracy = model_fn(batch, model, criterion, device)
+        running_loss += loss.item()
+        running_accuracy += accuracy.item()
+
+        loss.backward()
+        optimizer.step()
+        scheduler.step()
+
+        for writer in writers:
+            writer(config.step)
+
+        config.step += 1
+
+        pbar.update()
+        pbar.set_postfix(
+            loss=f"{running_loss / (i+1):.2f}",
+            accuracy=f"{running_accuracy / (i+1):.2f}",
+            step=config.step,
+            epoch=config.epoch + 1,
+        )
+
+    pbar.close()
+    config.epoch += 1
+
+    return (running_loss / len(dataloader)), (running_accuracy / len(dataloader))
+
 def valid(dataloader, model, criterion, device):
 	"""Validate on validation set."""
 
 	model.eval()
 	running_loss = 0.0
 	running_accuracy = 0.0
-	pbar = tqdm(total=len(dataloader.dataset), ncols=0, desc="Valid", unit=" uttr")
+	pbar = tqdm(total=len(dataloader), ncols=0, desc="Valid", unit=" batch")
 
 	for i, batch in enumerate(dataloader):
 		with torch.no_grad():
@@ -44,17 +82,52 @@ def valid(dataloader, model, criterion, device):
 			running_loss += loss.item()
 			running_accuracy += accuracy.item()
 
-		pbar.update(dataloader.batch_size)
+		pbar.update()
 		pbar.set_postfix(
 			loss=f"{running_loss / (i+1):.2f}",
 			accuracy=f"{running_accuracy / (i+1):.2f}",
 		)
 
 	pbar.close()
-	model.train()
 	return (running_loss / len(dataloader), running_accuracy / len(dataloader))
 
+def get_param_writer(writer, model, interval):
+    def _write(step):
+        if (step + 1)% interval == 0:
+            for name, param in model.named_parameters():
+                if param.requires_grad:
+                    writer.add_histogram(f"params/{name}", param.detach(), step + 1)
 
+    return _write
+
+def get_grad_writer(writer, model, interval):
+    grad_norm = []
+    def _write(step):
+        nonlocal grad_norm
+        grad_norm.append(torch.max(torch.stack([p.grad.detach().abs().max() for p in model.parameters() if p.requires_grad])))
+        if (step + 1)% interval == 0:
+            for idx, gn in enumerate(grad_norm):
+                writer.add_scalar("GradNorm/train", gn, step - (interval - idx) + 1)
+            grad_norm = []
+
+    return _write
+
+def get_train_writer(writer):
+    def _write(step, loss, acc, lr):
+        writer.add_scalar("Loss/train", loss, step)
+        writer.add_scalar("Accuracy/train", acc, step)
+        writer.add_scalar("Learning_rate", lr, step)
+
+    return _write
+
+def get_valid_writer(writer):
+    def _write(step, loss, acc):
+        writer.add_scalar("Loss/valid", loss, step)
+        writer.add_scalar("Accuracy/valid", acc, step)
+
+    return _write
+
+def main(conf):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logging.info(f"Use {device} now!")
@@ -63,7 +136,6 @@ def valid(dataloader, model, criterion, device):
         data_dir=conf["data_dir"],
         batch_size=conf["batch_size"]
     )
-
     logging.info(f"Data loaded!")
 
     model = make_model(
@@ -82,99 +154,67 @@ def valid(dataloader, model, criterion, device):
 
     optimizer = AdamW(parameters, lr=conf["optimizer"]["lr"])
 
-    print(sum(p.numel() for p in model.parameters()))
-    print(sum(p.numel() for p in model.parameters() if p.requires_grad))
+    logging.info(f"{sum(p.numel() for p in model.parameters() if p.requires_grad)} parameters to be trained.")
 
     scheduler = get_scheduler(optimizer, **conf["lr_scheduler"])
 
     print(f"[Info]: Finish creating model!", flush = True)
 
     best_accuracy = -1.0
+    best_loss = 1e10
     best_state_dict = None
 
-    pbar = tqdm(total=conf["valid_steps"], ncols=0, desc="Train", unit=" step")
+    writer = SummaryWriter(comment=conf["comment"], max_queue=1000)
+    train_writer = get_train_writer(writer)
+    valid_writer = get_valid_writer(writer)
+    param_writer = get_param_writer(writer, model, 2000)
+    grad_writer = get_grad_writer(writer, model, 1000)
+    model_writers = [param_writer, grad_writer]
 
-    train_loss = []
-    train_acc = []
-    grad_norm = []
+    logger.info(f"Start training in {conf['total_steps']} steps / {conf['total_steps']/len(train_loader)} epochs.")
+    logger.info(f"({len(train_loader)} batches per epoch)")
 
-    train_iterator = iter(train_loader)
+    config.step = 0
+    config.epoch = 0
 
-    writer = SummaryWriter(log_dir=f'./runs/{conf["comment"]}')
-
-    for step in range(conf["total_steps"]):
-
-        try:
-            batch = next(train_iterator)
-        except StopIteration:
-            train_iterator = iter(train_loader)
-            batch = next(train_iterator)
-
-        loss, accuracy = model_fn(batch, model, criterion, device)
-        batch_loss = loss.item()
-        batch_accuracy = accuracy.item()
-
-        loss.backward()
-        optimizer.step()
-        scheduler.step()
-
-        if (step + 1)% 2000 == 0:
-            for name, param in model.named_parameters():
-                if param.requires_grad:
-                    writer.add_histogram(f"params/{name}", param.detach(), step)
-        grad_norm.append(torch.max(torch.stack([p.grad.detach().abs().max() for p in model.parameters() if p.requires_grad])))
-        optimizer.zero_grad()
-
-       
-        pbar.update()
-
-        pbar.set_postfix(
-            loss=f"{batch_loss:.2f}",
-            accuracy=f"{batch_accuracy:.2f}",
-            step=step,
-        )
-        train_loss.append(batch_loss)
-        train_acc.append(batch_accuracy)
-
+    while config.step < conf["total_steps"]:
+        
+        # Do training
+        train_loss, train_accuracy = train(train_loader, model, criterion, optimizer, scheduler, device, model_writers)
+        train_writer(config.step, train_loss, train_accuracy, scheduler.get_last_lr()[0])
+        
         # Do validation		
-        if step % conf["valid_steps"] == 0:
-            pbar.close()
-            valid_loss, valid_accuracy = valid(valid_loader, model, criterion, device)
-            writer.add_scalar("Accuracy/valid", valid_accuracy, step)
-            writer.add_scalar("Loss/valid", valid_loss, step)
+        valid_loss, valid_accuracy = valid(valid_loader, model, criterion, device)
+        valid_writer(config.step, valid_loss, valid_accuracy)
 
-            if valid_accuracy > best_accuracy:
-                best_accuracy = valid_accuracy
-                best_state_dict = model.state_dict()
-
-            pbar = tqdm(total=conf["valid_steps"], ncols=0, desc="Train", unit=" step")
-
-        # Save the best model so far.
-        if step % conf["save_steps"] == 0 and best_state_dict is not None:
-            torch.save({
+        if valid_accuracy > best_accuracy:
+            best_accuracy = valid_accuracy
+            best_loss = valid_loss
+            best_state_dict = {
                 'config': conf,
-                'step': step,
-                'model_state_dict': best_state_dict,
+                'step': config.step,
+                'model_state_dict': model.state_dict(),
                 'optimizer_state_dict': optimizer.state_dict(),
                 'scheduler': scheduler.state_dict(),
-                }, f'{conf["comment"]}.ckpt')
-            # torch.save(best_state_dict, save_path)
-            pbar.write(f"Step {step + 1}, best model saved. (accuracy={best_accuracy:.4f})")
+            }
+            
+        # Save the best model so far.
+        if (config.step) % conf["save_steps"] < len(train_loader) and best_state_dict is not None:
+            torch.save(best_state_dict, f'{writer.log_dir}.ckpt')
+            print(f"Step {config.step + 1}, best model saved. (accuracy={best_accuracy:.4f})")
 
-        if step % 1000 == 0:
-            writer.add_scalar("Loss/train", sum(train_loss) / len(train_loss), step)
-            writer.add_scalar("Accuracy/train", sum(train_acc) / len(train_acc), step)
-            writer.add_scalar("Learning_rate", scheduler.get_last_lr()[0], step)
-            train_loss = []
-            train_acc = []
+        # Early stop
+        if config.step - best_state_dict['step'] > conf["early_stop"]:
+            print(f"Eearly stop at step {config.step + 1} (best model saved at step {best_state_dict['step']}, accuracy={best_accuracy:.4f})")
+            break
 
-            for idx, gn in enumerate(grad_norm):
-                writer.add_scalar("GradNorm/train", gn, step - (1000 - 1 - idx * 100))
-
-            grad_norm = []
-
-    pbar.close()
+    writer.add_hparams(
+        { "encoder.layers": 3 },
+        { "accuracy": best_accuracy, "loss": best_loss }
+    )
     writer.close()
 
 if __name__ == "__main__":
-    main()
+    from conf_loader import conf, get_default
+    
+    main(get_default(conf))

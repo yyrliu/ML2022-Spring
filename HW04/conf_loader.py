@@ -10,6 +10,7 @@ conf = {
     "valid_steps": 2000,
     "save_steps": 2000,
     "total_steps": 30000,
+    "early_stop": 5000,
     "model": {
         "input_mels": 40,
         "d_model": [80, 100, 120],
