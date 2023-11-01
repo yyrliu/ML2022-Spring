@@ -40,3 +40,16 @@ class AMSoftmax(nn.Module):
         costh_m_s = self.s * costh_m
         loss = self.ce(costh_m_s, lb)
         return costh, loss
+
+def get_loss_fn(type, *, in_feats, n_class, **conf):
+    if type == "amsoftmax":
+        return AMSoftmax(
+            in_feats=in_feats,
+            n_class=n_class,
+            m=conf["m"],
+            s=conf["s"],
+            norm_affine=conf["norm_affine"],
+            feat_norm=conf["feat_norm"],
+        )
+    else:
+        raise NotImplementedError(f"Loss function type `{type}` not implemented.")

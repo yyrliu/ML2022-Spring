@@ -6,7 +6,7 @@ import logging
 from itertools import chain
 
 from model.model import make_model
-from loss_fn import AMSoftmax
+from loss_fn import get_loss_fn
 import model_conf
 from get_dataloader import get_dataloader
 from scheduler import get_scheduler
@@ -54,52 +54,7 @@ def valid(dataloader, model, criterion, device):
 	model.train()
 	return (running_loss / len(dataloader), running_accuracy / len(dataloader))
 
-def get_loss_fn(type, conf):
-    if type == "amsoftmax":
-        return AMSoftmax(
-            in_feats=conf["in_feats"],
-            n_class=conf["n_class"],
-            m=conf["m"],
-            s=conf["s"],
-            norm_affine=conf["norm_affine"],
-            feat_norm=conf["feat_norm"],
-        )
-    else:
-        raise NotImplementedError(f"Loss function type `{type}` not implemented.")
-    
-def main():
 
-    lr_scheduler_conf = {
-        "learning_rate": 1e-3,
-        "type": "transformer",
-        "num_warmup_steps": 2000,
-    }
-
-    lr_scheduler_conf = {
-        "type": "milestone",
-        "num_warmup_steps": 7500,
-        "min_lr": 0.05,
-        "milestones": 30000,
-        "decay_const": 0.85,
-    }
-
-    conf = {
-        "comment": "test",
-        "data_dir": "data/Dataset",
-        "batch_size": 64,
-        "valid_steps": 2000,
-        "save_steps": 2000,
-        "total_steps": 30000,
-        "model": {
-            "input_mels": 40,
-            "d_model": 100,
-            "conf": model_conf.comformer_default_conf
-        },
-        "optimizer": {
-            "lr": 1e-3,
-        },
-        "lr_scheduler": lr_scheduler_conf
-    }
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     logging.info(f"Use {device} now!")
@@ -116,9 +71,11 @@ def main():
         **conf["model"]
     ).to(device)
         
-    criterion = AMSoftmax(
-        in_feats=speaker_num,
-        n_class=speaker_num,
+    criterion = get_loss_fn(
+         conf["loss_fn"]["type"],
+         in_feats=speaker_num,
+         n_class=speaker_num,
+         **conf["loss_fn"]["conf"]
     ).to(device)
 
     parameters = model.parameters(chain([model.parameters(), criterion.parameters()]))
