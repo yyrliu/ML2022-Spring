@@ -4,3 +4,4 @@
 **/prediction/
 .venv
 **/__pycache__/
+**/fairseq/
