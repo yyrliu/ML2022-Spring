@@ -6,7 +6,7 @@ Due to [Dataclass error while importing Fairseq in Python 3.11](https://github.c
 
 Preprocessing for `TED Talks 2013` 
 1. Rename `TED2013.en-zh.zh` and `ED2013.en-zh.en` to `test.raw.zh` and `test.raw.en`
-2. Use script `HW05/data/zh_cn_to_zh_tw.py` to convert Simplified Chinese to Traditional Chinese (Taiwan Standard) with Taiwanese idiom with [OpenCC](https://github.com/BYVoid/OpenCC)
+2. Use script `HW05/zh_cn_to_zh_tw.py` to convert Simplified Chinese to Traditional Chinese (Taiwan Standard) with Taiwanese idiom with [OpenCC](https://github.com/BYVoid/OpenCC)
 3. Run `HW05/preprocessing.py` (some modifications were made, see below)
 4. Truncate each file and leaving the first 4000 lines with `echo "$(tail -4000 test.clean.en)" > test.clean.en` 
 
