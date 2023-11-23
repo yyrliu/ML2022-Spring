@@ -2,7 +2,9 @@ from fairseq import utils
 from fairseq.tasks.translation import TranslationConfig, TranslationTask
 import pprint
 
-from config import config, seed
+from config import seed
+import config as cfg
+
 from utils import setup_logger
 
 ## setup task
@@ -28,9 +30,9 @@ def load_data_iterator(task, split, epoch=1, max_tokens=4000, num_workers=1, cac
 
 def main():
     task_cfg = TranslationConfig(
-        data=config.datadir,
-        source_lang=config.source_lang,
-        target_lang=config.target_lang,
+        data=cfg.config.datadir,
+        source_lang=cfg.config.source_lang,
+        target_lang=cfg.config.target_lang,
         train_subset="train",
         required_seq_len_multiple=8,
         dataset_impl="mmap",
@@ -50,14 +52,14 @@ def main():
         "Source: " + \
         task.source_dictionary.string(
             sample['source'],
-            config.post_process,
+            cfg.config.post_process,
         )
     )
     pprint.pprint(
         "Target: " + \
         task.target_dictionary.string(
             sample['target'],
-            config.post_process,
+            cfg.config.post_process,
         )
     )
 

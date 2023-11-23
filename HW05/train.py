@@ -11,7 +11,7 @@ import torch.nn.functional as F
 from torch.cuda.amp import GradScaler, autocast
 import wandb
 
-from config import config
+import config as cfg
 
 def train_one_epoch(epoch_itr, model, criterion, optimizer, device, logger, accum_steps=1):
     itr = epoch_itr.next_epoch_itr(shuffle=True)
@@ -50,7 +50,7 @@ def train_one_epoch(epoch_itr, model, criterion, optimizer, device, logger, accu
         
         scaler.unscale_(optimizer)
         optimizer.multiply_grads(1 / (sample_size or 1.0)) # (sample_size or 1.0) handles the case of a zero gradient
-        gnorm = nn.utils.clip_grad_norm_(model.parameters(), config.clip_norm) # grad norm clipping prevents gradient exploding
+        gnorm = nn.utils.clip_grad_norm_(model.parameters(), cfg.config.clip_norm) # grad norm clipping prevents gradient exploding
         
         scaler.step(optimizer)
         scaler.update()
@@ -59,7 +59,7 @@ def train_one_epoch(epoch_itr, model, criterion, optimizer, device, logger, accu
         loss_print = accum_loss/sample_size
         stats["loss"].append(loss_print)
         progress.set_postfix(loss=loss_print)
-        if config.use_wandb:
+        if cfg.config.use_wandb:
             wandb.log({
                 "train/loss": loss_print,
                 "train/grad_norm": gnorm.item(),
@@ -75,7 +75,7 @@ def decode(toks, dictionary):
     # convert from Tensor to human readable sentence
     s = dictionary.string(
         toks.int().cpu(),
-        config.post_process,
+        cfg.config.post_process,
     )
     return s if s else "<unk>"
 
@@ -136,7 +136,7 @@ def validate(valid_iter, model, task, criterion, sequence_generator, logger, dev
     stats["hyps"] = hyps
     stats["refs"] = refs
     
-    if config.use_wandb and log_to_wandb:
+    if cfg.config.use_wandb and log_to_wandb:
         wandb.log({
             "valid/loss": stats["loss"],
             "valid/bleu": stats["bleu"].score,
@@ -158,7 +158,7 @@ def validate_and_save(valid_iter, model, task, criterion, optimizer, sequence_ge
     loss = stats['loss']
     if save:
         # save epoch checkpoints
-        savedir = Path(config.savedir).absolute()
+        savedir = Path(cfg.config.savedir).absolute()
         savedir.mkdir(parents=True, exist_ok=True)
         
         check = {
@@ -171,7 +171,7 @@ def validate_and_save(valid_iter, model, task, criterion, optimizer, sequence_ge
         logger.info(f"saved epoch checkpoint: {savedir}/checkpoint{epoch}.pt")
     
         # save epoch samples
-        with open(savedir/f"samples{epoch}.{config.source_lang}-{config.target_lang}.txt", "w") as f:
+        with open(savedir/f"samples{epoch}.{cfg.config.source_lang}-{cfg.config.target_lang}.txt", "w") as f:
             for s, h in zip(stats["srcs"], stats["hyps"]):
                 f.write(f"{s}\t{h}\n")
 
@@ -180,7 +180,7 @@ def validate_and_save(valid_iter, model, task, criterion, optimizer, sequence_ge
             validate_and_save.best_bleu = bleu.score
             torch.save(check, savedir/f"checkpoint_best.pt")
             
-        del_file = savedir / f"checkpoint{epoch - config.keep_last_epochs}.pt"
+        del_file = savedir / f"checkpoint{epoch - cfg.config.keep_last_epochs}.pt"
         if del_file.exists():
             del_file.unlink()
     
@@ -188,7 +188,7 @@ def validate_and_save(valid_iter, model, task, criterion, optimizer, sequence_ge
 
 def try_load_checkpoint(model, logger, optimizer=None, name=None):
     name = name if name else "checkpoint_last.pt"
-    checkpath = Path(config.savedir)/name
+    checkpath = Path(cfg.config.savedir)/name
     if checkpath.exists():
         check = torch.load(checkpath)
         model.load_state_dict(check["model"])

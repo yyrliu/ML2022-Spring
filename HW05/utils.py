@@ -1,7 +1,7 @@
 import logging
 import sys
 from pathlib import Path
-from config import config
+import config as cfg
 
 def setup_logger():
 
@@ -14,8 +14,8 @@ def setup_logger():
 
     proj = "hw5.seq2seq"
     logger = logging.getLogger(proj)
-    if config.use_wandb:
+    if cfg.config.use_wandb:
         import wandb
-        wandb.init(project=proj, name=Path(config.savedir).stem, config=config)
+        wandb.init(project=proj, name=Path(cfg.config.savedir).stem, config=cfg.config)
 
     return logger

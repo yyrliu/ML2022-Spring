@@ -1,3 +1,5 @@
+import argparse
+from importlib import import_module
 from fairseq import utils
 from fairseq.tasks.translation import TranslationConfig, TranslationTask
 import sacrebleu
@@ -12,7 +14,7 @@ from model import build_model
 from train import inference_step, try_load_checkpoint
 from utils import setup_logger
 
-from config import config, arch_args
+import config as cfg
 
 def avg_checkpoints(model_path, num_to_avg=5):
 
@@ -36,7 +38,7 @@ def avg_checkpoints(model_path, num_to_avg=5):
 
 def generate_prediction(model, task, sequence_generator, device, logger, split="test", outfile="./prediction.txt"):    
     task.load_dataset(split=split, epoch=1)
-    itr = load_data_iterator(task, split, 1, config.max_tokens, config.num_workers).next_epoch_itr(shuffle=False)
+    itr = load_data_iterator(task, split, 1, cfg.config.max_tokens, cfg.config.num_workers).next_epoch_itr(shuffle=False)
     
     idxs = []
     srcs = []
@@ -67,20 +69,20 @@ def generate_prediction(model, task, sequence_generator, device, logger, split="
     logger.info("example reference: " + refs[showid])
     logger.info(bleu.format())
 
-    hyps = [x for _,x in sorted(zip(idxs,hyps))]
+    preds = [x for _, *x in sorted(zip(idxs, srcs, hyps))]
     with open(outfile, "w") as f:
         f.write(bleu.format()+"\n")
-        for h in tqdm.tqdm(hyps, desc=f"writing to file"):
-            f.write(h+"\n")
+        for s, h in preds:
+            f.write(f"{s}\t{h}\n")
     
 def main():
 
-    avg_checkpoints(config.savedir, num_to_avg=5)
+    avg_checkpoints(cfg.config.savedir, num_to_avg=5)
 
     task_cfg = TranslationConfig(
-        data=config.datadir,
-        source_lang=config.source_lang,
-        target_lang=config.target_lang,
+        data=cfg.config.datadir,
+        source_lang=cfg.config.source_lang,
+        target_lang=cfg.config.target_lang,
         train_subset="train",
         required_seq_len_multiple=8,
         dataset_impl="mmap",
@@ -92,15 +94,27 @@ def main():
     logger = setup_logger()
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    model = build_model(arch_args, task)
+    model = build_model(cfg.arch_args, task)
     model = model.to(device=device)
     # checkpoint_last.pt : latest epoch
     # checkpoint_best.pt : highest validation bleu
     # avg_last_5_checkpoint.pt:　the average of last 5 epochs
     try_load_checkpoint(model, logger, name="avg_last_5_checkpoint.pt")
-    sequence_generator = task.build_generator([model], config)
+    sequence_generator = task.build_generator([model], cfg.config)
     
-    generate_prediction(model, task, sequence_generator, device, logger, split="test", outfile="./prediction.txt")
+    generate_prediction(model, task, sequence_generator, device, logger, split="test", outfile=f"{cfg.config.savedir}/prediction.txt")
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", required=True, type=str, default="config.py")
+    args = parser.parse_args()
+
+    config_path = Path(args.config).resolve().relative_to(Path.cwd())
+    print(f"Loading experiment settings from {config_path}")
+
+    config = import_module(str(config_path).replace(".py", "").replace("/", "."))
+
+    cfg.config = config.config
+    cfg.arch_args = config.arch_args
+
     main()

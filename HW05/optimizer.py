@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
-from config import config, arch_args
+import config as cfg
 
 def get_rate(d_model, step_num, warmup_step):
     # TODO: Change lr from constant to the equation shown above
@@ -47,9 +47,9 @@ class NoamOpt:
 def main():
 
     optimizer = NoamOpt(
-        model_size=arch_args.encoder_embed_dim, 
-        factor=config.lr_factor, 
-        warmup=config.lr_warmup, 
+        model_size=cfg.arch_args.encoder_embed_dim, 
+        factor=cfg.config.lr_factor, 
+        warmup=cfg.config.lr_warmup, 
         optimizer=torch.optim.AdamW(model.parameters(), lr=0, betas=(0.9, 0.98), eps=1e-9, weight_decay=0.0001))
     
     plt.plot(np.arange(1, 100000), [optimizer.rate(i) for i in range(1, 100000)])
