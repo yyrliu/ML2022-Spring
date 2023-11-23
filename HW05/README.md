@@ -13,3 +13,9 @@ Preprocessing for `TED Talks 2013`
 Additional rules added to `HW05/preprocessing.py`
 - Remove lines containing URLs (`match_url()`)
 - Unify interpuncts symbol "•" `s = s.replace('·', '•')` and `s = s.replace('‧', '•')`
+
+### Results
+
+|Entry      |BLEU Score |`path`|
+|-----------|-----------|---------|
+|Base Line  |15.16|`checkpoints/rnn`|
