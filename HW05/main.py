@@ -21,9 +21,6 @@ from loss_fn import LabelSmoothedCrossEntropyCriterion
 
 def main():
 
-    if cfg.config.use_wandb:
-        wandb.config.update(vars(cfg.arch_args))
-
     random.seed(seed)
     torch.manual_seed(seed)
     if torch.cuda.is_available():
