@@ -4,8 +4,7 @@ import matplotlib.pyplot as plt
 import config as cfg
 
 def get_rate(d_model, step_num, warmup_step):
-    # TODO: Change lr from constant to the equation shown above
-    lr = 0.001
+    lr = d_model ** (-0.5) * min(step_num ** (-0.5), step_num * warmup_step ** (-1.5))
     return lr
 
 class NoamOpt:
