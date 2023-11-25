@@ -26,8 +26,10 @@ Additional rules added to `HW05/preprocessing.py`
 | Entry      | BLEU_AVG_Last_5 | BLEU_Best | BLEU_Last |`path`|
 |------------|-----------------|-----------|-----------|------|
 | [Base Line](#base-line) | 15.16 | 14.59 | 14.34 |`checkpoints/rnn`|
-| [LR scheduling](#lr-scheduling) | 15.10 | 15.33 | 15.33 |`lr_scheduler` |
-| [LR scheduling + train longer](#lr-scheduling--train-longer) |  |  |  |`lr_scheduler_30ep` |
+| [LR scheduling](#lr-scheduling) (`lr_factor=2`) | 15.10 | 15.33 | 15.33 |`lr_scheduler` |
+| [LR scheduling + train longer](#lr-scheduling--train-longer) (`lr_factor=2`) | 17.27 | 17.06 | 17.06 |`lr_scheduler_30ep` |
+| [LR scheduling](#lr-scheduling) (`lr_factor=1`) | 17.15 | 17.55 | 17.55 |`lr_scheduler` |
+| [LR scheduling + train longer](#lr-scheduling--train-longer) (`lr_factor=1`) | 18.10 | 17.90 | 17.85 |`lr_scheduler_30ep` |
 
 ### Experimental details
 
@@ -39,6 +41,6 @@ Default training of template code
 $lr\_rate = d_{\text{model}}^{-0.5}\cdot\min({step\_num}^{-0.5},{step\_num}\cdot{warmup\_steps}^{-1.5})$
 
 #### LR scheduling + train longer
-- $lr_rate = d_{\text{model}}^{-0.5}\cdot\min({step\_num}^{-0.5},{step\_num}\cdot{warmup\_steps}^{-1.5})$
+- $lr\_rate = d_{\text{model}}^{-0.5}\cdot\min({step\_num}^{-0.5},{step\_num}\cdot{warmup\_steps}^{-1.5})$
 
 - Train for 30 epoches instead of 15 epochs (default)
