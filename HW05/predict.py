@@ -74,10 +74,18 @@ def generate_prediction(model, task, sequence_generator, device, logger, split="
         f.write(bleu.format()+"\n")
         for s, h in preds:
             f.write(f"{s}\t{h}\n")
-    
-def main():
 
-    avg_checkpoints(cfg.config.savedir, num_to_avg=5)
+    return bleu.format()
+    
+def main(policy):
+
+    if policy == "avg5":
+        avg_checkpoints(cfg.config.savedir, num_to_avg=5)
+        checkpoint_name = "avg_last_5_checkpoint.pt"
+    if policy == "best":
+        checkpoint_name = "checkpoint_best.pt"
+    if policy == "last":
+        checkpoint_name = "checkpoint_last.pt"
 
     task_cfg = TranslationConfig(
         data=cfg.config.datadir,
@@ -99,10 +107,10 @@ def main():
     # checkpoint_last.pt : latest epoch
     # checkpoint_best.pt : highest validation bleu
     # avg_last_5_checkpoint.pt:　the average of last 5 epochs
-    try_load_checkpoint(model, logger, name="avg_last_5_checkpoint.pt")
+    try_load_checkpoint(model, logger, name=checkpoint_name)
     sequence_generator = task.build_generator([model], cfg.config)
     
-    generate_prediction(model, task, sequence_generator, device, logger, split="test", outfile=f"{cfg.config.savedir}/prediction.txt")
+    return generate_prediction(model, task, sequence_generator, device, logger, split="test", outfile=f"{cfg.config.savedir}/prediction-{policy}.txt") 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -114,7 +122,16 @@ if __name__ == "__main__":
 
     config = import_module(str(config_path).replace(".py", "").replace("/", "."))
 
+    config.config.savedir = str(config_path.parent)
+
     cfg.config = config.config
     cfg.arch_args = config.arch_args
 
-    main()
+    policies = ["avg5", "best", "last"]
+    bleus = []
+    
+    for policy in policies:
+        bleus.append(main(policy))
+
+    for policy, bleu in zip(policies, bleus):
+        print(f"{policy}: {bleu}")
