@@ -16,13 +16,13 @@ from utils import setup_logger
 
 import config as cfg
 
-def avg_checkpoints(model_path, num_to_avg=5):
+def avg_checkpoints(model_path, logger, num_to_avg=5):
 
     input_path = Path(model_path).resolve()
     output_path = Path(f"{model_path}/avg_last_{num_to_avg}_checkpoint.pt").resolve()
 
     if Path(output_path).exists():
-        print(f"{output_path} exists, will not overwrite!")
+        logger.info(f"{output_path} exists, will not overwrite!")
         return
 
     command = f"\
@@ -32,7 +32,7 @@ def avg_checkpoints(model_path, num_to_avg=5):
         --output {output_path}\
         "
 
-    print(command)
+    logger.info(command)
 
     subprocess.run(command, shell=True)
 
@@ -79,8 +79,11 @@ def generate_prediction(model, task, sequence_generator, device, logger, split="
     
 def main(policy):
 
+    logger = setup_logger()
+    logger.info(f'Loading experiment settings from {Path(cfg.config.savedir, "config.py")}')
+
     if policy == "avg5":
-        avg_checkpoints(cfg.config.savedir, num_to_avg=5)
+        avg_checkpoints(cfg.config.savedir, logger, num_to_avg=5)
         checkpoint_name = "avg_last_5_checkpoint.pt"
     if policy == "best":
         checkpoint_name = "checkpoint_best.pt"
@@ -99,8 +102,6 @@ def main(policy):
 
     task = TranslationTask.setup_task(task_cfg)
 
-    logger = setup_logger()
-
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     model = build_model(cfg.arch_args, task)
     model = model.to(device=device)
@@ -118,10 +119,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     config_path = Path(args.config).resolve().relative_to(Path.cwd())
-    print(f"Loading experiment settings from {config_path}")
-
     config = import_module(str(config_path).replace(".py", "").replace("/", "."))
-
     config.config.savedir = str(config_path.parent)
 
     cfg.config = config.config

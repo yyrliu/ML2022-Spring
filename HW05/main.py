@@ -21,6 +21,9 @@ from loss_fn import LabelSmoothedCrossEntropyCriterion
 
 def main():
 
+    logger = setup_logger()
+    logger.info(f'Loading experiment settings from {Path(cfg.config.savedir, "config.py")}')
+
     random.seed(seed)
     torch.manual_seed(seed)
     if torch.cuda.is_available():
@@ -45,7 +48,6 @@ def main():
     task.load_dataset(split="valid", epoch=1)
 
     device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-    logger = setup_logger()
 
     if cfg.config.use_wandb:
         wandb.config.update(vars(cfg.arch_args))
@@ -99,10 +101,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     config_path = Path(args.config).resolve().relative_to(Path.cwd())
-    print(f"Loading experiment settings from {config_path}")
-
     config = import_module(str(config_path).replace(".py", "").replace("/", "."))
-
     config.config.savedir = str(config_path.parent)
 
     cfg.config = config.config
