@@ -3,7 +3,7 @@ import sys
 from pathlib import Path
 import config as cfg
 
-def setup_logger():
+def setup_logger(use_wandb=True):
 
     logging.basicConfig(
         format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
@@ -14,7 +14,7 @@ def setup_logger():
 
     proj = "hw5.seq2seq"
     logger = logging.getLogger(proj)
-    if cfg.config.use_wandb:
+    if cfg.config.use_wandb and use_wandb:
         import wandb
         wandb.init(project=proj, name=Path(cfg.config.savedir).stem, config=cfg.config)
 

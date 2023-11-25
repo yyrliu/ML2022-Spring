@@ -79,7 +79,7 @@ def generate_prediction(model, task, sequence_generator, device, logger, split="
     
 def main(policy):
 
-    logger = setup_logger()
+    logger = setup_logger(use_wandb=False)
     logger.info(f'Loading experiment settings from {Path(cfg.config.savedir, "config.py")}')
 
     if policy == "avg5":
