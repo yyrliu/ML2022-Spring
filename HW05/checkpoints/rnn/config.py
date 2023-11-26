@@ -4,12 +4,12 @@ seed = 73
 
 config = Namespace(
     datadir = "./data/bin/",
-    savedir = "./checkpoints/rnn",
+    savedir = None,
     source_lang = "en",
     target_lang = "zh",
     
     # cpu threads when fetching & processing data.
-    num_workers=2,  
+    num_workers=8,  
     # batch size in terms of tokens. gradient accumulation increases the effective batchsize.
     max_tokens=8192,
     accum_steps=2,

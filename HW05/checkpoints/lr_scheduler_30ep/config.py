@@ -9,7 +9,7 @@ config = Namespace(
     target_lang = "zh",
     
     # cpu threads when fetching & processing data.
-    num_workers=2,  
+    num_workers=8,  
     # batch size in terms of tokens. gradient accumulation increases the effective batchsize.
     max_tokens=8192,
     accum_steps=2,
