@@ -30,11 +30,11 @@ Additional rules added to `HW05/preprocessing.py`
 | [LR scheduling + train longer](#lr-scheduling--train-longer) (`lr_factor=2`) | 17.27 | 17.06 | 17.06 |`lr_scheduler_30ep` |
 | [LR scheduling](#lr-scheduling) (`lr_factor=1`) | 17.15 | 17.55 | 17.55 |`lr_scheduler` |
 | [LR scheduling + train longer](#lr-scheduling--train-longer) (`lr_factor=1`) | 18.10 | 17.90 | 17.85 |`lr_scheduler_30ep` |
-| [Transformer](#transformer) | 15.46 | 15.47 | 15.09 | `transformer` |
+| [Transformer](#transformer) | 22.18 | 22.15 | 21.73 | Listed in [Transformer](#transformer) |
 
 ### Experimental details
 
-#### Base Line
+#### Base line
 Default training of template code
 
 #### LR scheduling
@@ -48,4 +48,12 @@ $lr\_rate = d_{\text{model}}^{-0.5}\cdot\min({step\_num}^{-0.5},{step\_num}\cdot
 
 #### Transformer
 - Switch to transformer model
+
+- Fine tune transformer architecture
+
+| Entry           | encoder_layers | dropout | BLEU_AVG_Last_5 | `path` |
+|-----------------|----------------|---------| --------------- | ------ |
+| Default         | 1 | 0.3 | 15.46 | `transformer` |
+| layers=4        | 4 | 0.1 | 22.18 | `transformer_layers4` |
+
 
