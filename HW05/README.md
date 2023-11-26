@@ -51,9 +51,10 @@ $lr\_rate = d_{\text{model}}^{-0.5}\cdot\min({step\_num}^{-0.5},{step\_num}\cdot
 
 - Fine tune transformer architecture
 
-| Entry           | encoder_layers | dropout | BLEU_AVG_Last_5 | `path` |
-|-----------------|----------------|---------| --------------- | ------ |
-| Default         | 1 | 0.3 | 15.46 | `transformer` |
-| layers=4        | 4 | 0.1 | 22.18 | `transformer_layers4` |
+| Entry           | encoder_layers | d_encoder | d_encoder_ffn | d_encoder | d_decoder_ffn | dropout | BLEU_AVG_Last_5 | `path` |
+|-----------------|----------------|-----------|---------------|-----------|---------------|---------|-----------------|--------|
+| Default         | 1 | 256 | 512 | 256 | 1024 | 0.3 | 15.46 | `transformer` |
+| layers=4        | 4 | | | | | 0.1 | 22.18 | `transformer_layers4` |
+| dim=128         | 4 | 128 | | 128 | 512 | 0.1 | 19.63 | `transformer_d128` |
 
 
