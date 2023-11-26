@@ -22,8 +22,14 @@ def build_model(args, task):
     
     # encoder decoder
     # HINT: TODO: switch to TransformerEncoder & TransformerDecoder
-    encoder = RNNEncoder(args, src_dict, encoder_embed_tokens)
-    decoder = RNNDecoder(args, tgt_dict, decoder_embed_tokens)
+    if args.arch == "transformer":
+        encoder = TransformerEncoder(args, src_dict, encoder_embed_tokens)
+        decoder = TransformerDecoder(args, tgt_dict, decoder_embed_tokens)
+    elif args.arch == "rnn":
+        encoder = RNNEncoder(args, src_dict, encoder_embed_tokens)
+        decoder = RNNDecoder(args, tgt_dict, decoder_embed_tokens)
+    else:
+        raise NotImplementedError(f"arch {args.arch} not implemented")
     # encoder = TransformerEncoder(args, src_dict, encoder_embed_tokens)
     # decoder = TransformerDecoder(args, tgt_dict, decoder_embed_tokens)
 

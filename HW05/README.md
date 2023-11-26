@@ -30,6 +30,7 @@ Additional rules added to `HW05/preprocessing.py`
 | [LR scheduling + train longer](#lr-scheduling--train-longer) (`lr_factor=2`) | 17.27 | 17.06 | 17.06 |`lr_scheduler_30ep` |
 | [LR scheduling](#lr-scheduling) (`lr_factor=1`) | 17.15 | 17.55 | 17.55 |`lr_scheduler` |
 | [LR scheduling + train longer](#lr-scheduling--train-longer) (`lr_factor=1`) | 18.10 | 17.90 | 17.85 |`lr_scheduler_30ep` |
+| [Transformer](#transformer) | 15.46 | 15.47 | 15.09 | `transformer` |
 
 ### Experimental details
 
@@ -44,3 +45,7 @@ $lr\_rate = d_{\text{model}}^{-0.5}\cdot\min({step\_num}^{-0.5},{step\_num}\cdot
 - $lr\_rate = d_{\text{model}}^{-0.5}\cdot\min({step\_num}^{-0.5},{step\_num}\cdot{warmup\_steps}^{-1.5})$
 
 - Train for 30 epoches instead of 15 epochs (default)
+
+#### Transformer
+- Switch to transformer model
+

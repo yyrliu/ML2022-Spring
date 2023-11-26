@@ -38,10 +38,11 @@ config = Namespace(
     resume=None, # if resume from checkpoint name (under config.savedir)
     
     # logging
-    use_wandb=False,
+    use_wandb=True,
 )
 
 arch_args = Namespace(
+    arch="rnn",
     encoder_embed_dim=256,
     encoder_ffn_embed_dim=512,
     encoder_layers=1,
