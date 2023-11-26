@@ -17,6 +17,12 @@ Additional rules added to `HW05/preprocessing.py`
 - Unify interpuncts symbol "•" `s = s.replace('·', '•')` and `s = s.replace('‧', '•')`
 - Truncate test datasets, leaving only the first 4000 lines since that will be sufficient for model performance evaluation.
 
+### Setup back-translation
+
+Dataset download from https://github.com/yuhsinchan/ML2022-HW5Dataset/releases/download/v1.0.2/ted_zh_corpus.deduped.gz
+
+
+
 ### Model performance evaluation
 
 `generate_prediction()` in `optimizer` module uses `sacrebleu.corpus_bleu` to evaluate model performance against reference `test.clean.zh` described in [Preprocessing of private test dataset](#preprocessing-of-private-test-dataset)
@@ -48,13 +54,15 @@ $lr\_rate = d_{\text{model}}^{-0.5}\cdot\min({step\_num}^{-0.5},{step\_num}\cdot
 
 #### Transformer
 - Switch to transformer model
-
+- Train for 30 epoches
 - Fine tune transformer architecture
 
-| Entry           | encoder_layers | d_encoder | d_encoder_ffn | d_encoder | d_decoder_ffn | dropout | BLEU_AVG_Last_5 | `path` |
-|-----------------|----------------|-----------|---------------|-----------|---------------|---------|-----------------|--------|
-| Default         | 1 | 256 | 512 | 256 | 1024 | 0.3 | 15.46 | `transformer` |
-| layers=4        | 4 | | | | | 0.1 | 22.18 | `transformer_layers4` |
-| dim=128         | 4 | 128 | | 128 | 512 | 0.1 | 19.63 | `transformer_d128` |
+| Entry           | encoder_layers | heads | d_encoder | d_encoder_ffn | d_encoder | d_decoder_ffn | dropout | BLEU_AVG_Last_5 | `path` |
+|-----------------|----------------|---------|-----------|---------------|-----------|---------------|---------|-----------------|--------|
+| Default         | 1 | 4 | 256 | 512 | 256 | 1024 | 0.3 | 15.46 | `transformer` |
+| layers=4        | 4 | | | | | | 0.1 | 22.18 | `transformer_layers4` |
+| ffn=1024        | 4 | | | 1024 | | | 0.1 | 22.92 | `transformer_ffn1024` |
+| dim=128         | 4 | | 128 | | 128 | 512 | 0.1 | 19.63 | `transformer_d128` |
+| heads=6         | 4 | 6 | 288 | 1024 | 288 | | 0.1 | 23.26 | `transformer_head6` |
 
 
