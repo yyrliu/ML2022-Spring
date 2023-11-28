@@ -10,7 +10,7 @@ import wandb
 from dataloader import load_data_iterator
 from train import train_one_epoch, validate_and_save, try_load_checkpoint
 from optimizer import NoamOpt
-from utils import setup_logger
+from utils import setup_logger, load_config
 from model import build_model
 import config as cfg
 from config import seed
@@ -100,10 +100,5 @@ if __name__ == "__main__":
     parser.add_argument("--config", required=True, type=str, default="config.py")
     args = parser.parse_args()
 
-    config_path = Path(args.config).resolve().relative_to(Path.cwd())
-    config = import_module(str(config_path).replace(".py", "").replace("/", "."))
-    config.config.savedir = str(config_path.parent)
-
-    cfg.config = config.config
-    cfg.arch_args = config.arch_args
+    load_config(args.config)
     main()

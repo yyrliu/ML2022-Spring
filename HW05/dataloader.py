@@ -1,9 +1,11 @@
+import argparse
 from fairseq import utils
 from fairseq.tasks.translation import TranslationConfig, TranslationTask
 import pprint
 
 from config import seed
 import config as cfg
+from utils import load_config
 
 from utils import setup_logger
 
@@ -63,11 +65,19 @@ def main():
         )
     )
 
-
     demo_epoch_obj = load_data_iterator(task, "valid", epoch=1, max_tokens=20, num_workers=1, cached=False)
     demo_iter = demo_epoch_obj.next_epoch_itr(shuffle=True)
     sample = next(demo_iter)
     pprint.pprint(sample)
+    print(sample['net_input']['src_tokens'].shape)
+    print(sample['net_input']['src_lengths'].shape)
+    print(sample['net_input']['src_tokens'].shape)
+    print(sample['target'].shape)
+
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", required=True, type=str, default="config.py")
+    args = parser.parse_args()
+    load_config(args.config)
     main()
