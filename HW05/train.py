@@ -21,7 +21,7 @@ def train_one_epoch(epoch_itr, model, criterion, optimizer, device, logger, accu
     scaler = GradScaler() # automatic mixed precision (amp) 
     
     model.train()
-    progress = tqdm.tqdm(itr, desc=f"train epoch {epoch_itr.epoch}", leave=False)
+    progress = tqdm.tqdm(itr, desc=f"train epoch {epoch_itr.epoch}", leave=True)
     for samples in progress:
         model.zero_grad()
         accum_loss = 0
@@ -40,13 +40,13 @@ def train_one_epoch(epoch_itr, model, criterion, optimizer, device, logger, accu
             # mixed precision training
             with autocast():
                 net_output = model.forward(**sample["net_input"])
-                lprobs = F.log_softmax(net_output[0], -1)            
+                lprobs = F.log_softmax(net_output[0], -1)
                 loss = criterion(lprobs.view(-1, lprobs.size(-1)), target.view(-1))
                 
                 # logging
                 accum_loss += loss.item()
                 # back-prop
-                scaler.scale(loss).backward()                
+                scaler.scale(loss).backward()
         
         scaler.unscale_(optimizer)
         optimizer.multiply_grads(1 / (sample_size or 1.0)) # (sample_size or 1.0) handles the case of a zero gradient
