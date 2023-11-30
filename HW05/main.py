@@ -3,6 +3,7 @@ from fairseq.tasks.translation import TranslationConfig, TranslationTask
 from importlib import import_module
 from pathlib import Path
 import torch
+from torch import nn
 import random
 import numpy as np
 import wandb
@@ -55,10 +56,10 @@ def main():
     model = build_model(cfg.arch_args, task)
     logger.info(model)
 
-    # generally, 0.1 is good enough
-    criterion = LabelSmoothedCrossEntropyCriterion(
-        smoothing=0.1,
-        ignore_index=task.target_dictionary.pad(),
+    criterion = nn.CrossEntropyLoss(
+        reduction="sum",
+        label_smoothing=0.1,
+        ignore_index=task.target_dictionary.pad()
     )
 
     optimizer = NoamOpt(
