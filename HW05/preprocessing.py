@@ -1,4 +1,5 @@
 from pathlib import Path
+import glob
 import sentencepiece as spm
 import subprocess
 import random
@@ -125,14 +126,9 @@ def train_subwords(prefix, langs, vocab_size=8000):
         normalization_rule_name='nmt_nfkc_cf',
     )
 
-def tokenizer(dir, langs, model_file):
+def tokenizer(dir, in_tag, langs, model_file):
     spm_model = spm.SentencePieceProcessor(model_file=model_file)
-    in_tag = {
-        'train': 'train_dev.train.clean',
-        'valid': 'train_dev.valid.clean',
-        'test':  'test.clean',
-    }
-    for split in ['train', 'valid', 'test']:
+    for split in in_tag.keys():
         for lang in langs:
             out_path = Path(f'{dir}/{split}.{lang}')
             if out_path.exists():
@@ -164,14 +160,19 @@ def binarize(source_prefix, bin_path, src_lang, tgt_lang):
         print(command)
         subprocess.run(command, shell=True)
 
-if __name__ == '__main__':
+def preprocess():
     seed = 73
     random.seed(seed)
     src_lang = 'en'
     tgt_lang = 'zh'
     data_dir = 'data/processed'
     data_prefix = f'{data_dir}/train_dev'
-    test_prefix = f'{data_dir}/test'
+    test_prefix = f'{data_dir}/test'    
+    in_tag = {
+        'train': 'train_dev.train.clean',
+        'valid': 'train_dev.valid.clean',
+        'test':  'test.clean',
+    }
 
     # train_dev.raw.en -> train_dev.clean.en
     # train_dev.raw.zh -> train_dev.clean.zh
@@ -193,7 +194,61 @@ if __name__ == '__main__':
     train_subwords(data_prefix, [src_lang, tgt_lang])
 
     # train_dev.{train,valid,test}.clean.{en,zh} -> train_dev.{train,valid,test}.{en,zh}
-    tokenizer(data_dir, [src_lang, tgt_lang], f'{data_prefix}.spm8000.model')
+    tokenizer(data_dir, in_tag, [src_lang, tgt_lang], f'{data_prefix}.spm8000.model')
 
     # data/processed/{train,valid,test}.{en,zh} -> data/bin/{train,valid,test}.en-zh.{en,zh}.bin
     binarize(data_dir, 'data/bin', src_lang, tgt_lang)
+
+def back_translate_binarize(source_prefix, bin_path, src_lang, tgt_lang):
+    src_dict_file = 'data/bin/dict.en.txt'
+    tgt_dict_file = src_dict_file
+
+    bin_files = glob.glob(f'{source_prefix}/mono.zh-en.*.bin')
+
+    if len(bin_files) > 0:
+        print(f'{bin_files} exists. skipping back_translation.')
+    else:
+        command = f"\
+            python -m fairseq_cli.preprocess\
+            --source-lang {src_lang}\
+            --target-lang {tgt_lang}\
+            --trainpref '{source_prefix}/back_translation'\
+            --destdir {bin_path}\
+            --srcdict {src_dict_file}\
+            --tgtdict {tgt_dict_file}\
+            --workers 2\
+            "
+        print(command)
+        subprocess.run(command, shell=True)
+
+def backtranslate():
+    src_lang = 'zh'
+    tgt_lang = 'en'
+    data_dir = 'data/processed'
+    data_prefix = f'{data_dir}/back_translation'
+    tokenizer_model = f'data/processed/train_dev.spm8000.model'
+    in_tag = {
+        'back_translation': 'back_translation.clean',
+    }
+
+    num_lines = sum(1 for _ in open(f"{data_prefix}.raw.{src_lang}", 'r'))
+    if Path(f"{data_prefix}.raw.{tgt_lang}").exists():
+        print(f"{data_prefix}.raw.{tgt_lang} exists. skipping dummy file creation.")
+    else:
+        with open(f"{data_prefix}.raw.{tgt_lang}", 'w') as tgt_f:
+            for _ in range(num_lines):
+                tgt_f.write('.\n')
+
+    # back_translation.raw.{en,zh} -> back_translation.{train,valid}.clean.{zh,en}
+    clean_corpus(data_prefix, src_lang, tgt_lang, ratio=-1, max_len=1000, min_len=1)
+    # back_translation.{train,valid}.clean.{zh,en} -> back_translation.{zh,en}
+    tokenizer(data_dir, in_tag, [src_lang, tgt_lang], tokenizer_model)
+    # data/processed/back_translation.{zh,en} -> data/bin/train.zh-en.{zh,en}.bin
+    back_translate_binarize(data_dir, 'data/bin', src_lang, tgt_lang)
+    # data/bin/train.zh-en.{zh,en}.bin -> data/bin/mono.zh-en.{zh,en}.bin
+    for bin in glob.glob(f'data/bin/train.zh-en.*'):
+        Path(bin).rename(bin.replace('train', 'mono'))
+
+if __name__ == '__main__':
+    # preprocess()
+    backtranslate()
