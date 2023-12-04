@@ -63,10 +63,12 @@ def main():
     )
 
     optimizer = NoamOpt(
-        model_size=cfg.arch_args.encoder_embed_dim, 
-        factor=cfg.config.lr_factor, 
-        warmup=cfg.config.lr_warmup, 
-        optimizer=torch.optim.AdamW(model.parameters(), lr=0, betas=(0.9, 0.98), eps=1e-9, weight_decay=0.0001))
+        model_size=cfg.arch_args.encoder_embed_dim,
+        factor=cfg.config.lr_factor,
+        warmup=cfg.config.lr_warmup,
+        optimizer=torch.optim.AdamW(model.parameters(), lr=0, betas=(0.9, 0.98), eps=1e-9, weight_decay=0.0001),
+        decay=cfg.config.lr_decay
+    )
 
     model = model.to(device=device)
     criterion = criterion.to(device=device)

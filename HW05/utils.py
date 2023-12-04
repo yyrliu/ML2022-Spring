@@ -1,3 +1,4 @@
+from argparse import Namespace
 import logging
 from importlib import import_module
 import sys
@@ -21,10 +22,25 @@ def setup_logger(use_wandb=True):
 
     return logger
 
+class Config(Namespace):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        # store keys/attributes that are not defined in original config
+        self.lagacy_keys = [
+            "lr_decay",
+        ]
+
+    def __getattr__(self, item):
+        if item in self.lagacy_keys:
+            return None
+        else:
+            raise AttributeError
+
 def load_config(config_path):
     config_path = Path(config_path).resolve().relative_to(Path.cwd())
     config = import_module(str(config_path).replace(".py", "").replace("/", "."))
     config.config.savedir = str(config_path.parent)
-    cfg.config = config.config
-    cfg.arch_args = config.arch_args
+    cfg.config = Config(**vars(config.config))
+    cfg.arch_args = Config(**vars(config.arch_args))
     return config

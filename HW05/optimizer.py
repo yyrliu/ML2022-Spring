@@ -3,18 +3,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import config as cfg
 
-def get_rate(d_model, step_num, warmup_step):
-    lr = d_model ** (-0.5) * min(step_num ** (-0.5), step_num * warmup_step ** (-1.5))
-    return lr
-
 class NoamOpt:
     "Optim wrapper that implements rate."
-    def __init__(self, model_size, factor, warmup, optimizer):
+    def __init__(self, model_size, factor, warmup, optimizer, decay):
         self.optimizer = optimizer
         self._step = 0
         self.warmup = warmup
         self.factor = factor
         self.model_size = model_size
+        self.decay = decay or 0.5
         self._rate = 0
     
     @property
@@ -41,7 +38,11 @@ class NoamOpt:
         "Implement `lrate` above"
         if step is None:
             step = self._step
-        return 0 if not step else self.factor * get_rate(self.model_size, step, self.warmup)
+        return 0 if not step else self.factor * self.get_rate(step)
+    
+    def get_rate(self, step_num):
+        lr = self.model_size ** (-0.5) * min(step_num ** (-self.decay), step_num * self.warmup ** (-1.5))
+        return lr
 
 def main():
 
