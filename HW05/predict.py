@@ -61,10 +61,15 @@ def generate_prediction(model, task, sequence_generator, device, logger, split="
             idxs.extend(list(sample['id']))
 
     if prediction_only:
-        preds = [x for _, x in sorted(zip(idxs, hyps))]
-        with open(outfile, "w") as f:
-            for h in preds:
-                f.write(f"{h}\n")
+        path_base = Path(outfile)
+        with open(path_base.with_stem(f"{path_base.stem}-{task.cfg.target_lang}"), "w") as f:
+            for hyp in hyps:
+                f.write(f"{hyp}\n")
+
+        with open(path_base.with_stem(f"{path_base.stem}-{task.cfg.source_lang}"), "w") as f:
+            for src in srcs:
+                f.write(f"{src}\n")
+
     else:
         tok = 'zh' if task.cfg.target_lang == 'zh' else '13a'
         bleu = sacrebleu.corpus_bleu(hyps, [refs], tokenize=tok)
