@@ -1,3 +1,4 @@
+import argparse
 from pathlib import Path
 import glob
 import sentencepiece as spm
@@ -318,6 +319,19 @@ def synthetic():
         subprocess.run(f'ln -s ../{link} data/bin/synthetic/{link}', shell=True)
 
 if __name__ == '__main__':
-    # preprocess()
-    # backtranslate()
-    synthetic()
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(dest='command', required=True)
+    preprocess_parser = subparsers.add_parser('preprocess', help='Prepare training data')
+    backtranslate_parser = subparsers.add_parser('backtranslate', help='Prepare back translation data')
+    synthetic_parser = subparsers.add_parser('synthetic', help='Prepare synthetic data')
+    args = parser.parse_args()
+
+    if args.command == 'preprocess':
+        print('preprocess')
+        # preprocess()
+    elif args.command == 'backtranslate':
+        print('backtranslate')
+        # backtranslate()
+    elif args.command == 'synthetic':
+        print('synthetic')
+        # synthetic()
