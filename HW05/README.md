@@ -17,11 +17,21 @@ Additional rules added to `HW05/preprocessing.py`
 - Unify interpuncts symbol "•" `s = s.replace('·', '•')` and `s = s.replace('‧', '•')`
 - Truncate test datasets, leaving only the first 4000 lines since that will be sufficient for model performance evaluation.
 
-### Setup back-translation
+### Setup back-translation and train with back-translated (synthetic) data
 
-Dataset download from https://github.com/yuhsinchan/ML2022-HW5Dataset/releases/download/v1.0.2/ted_zh_corpus.deduped.gz
+1. Dataset download from https://github.com/yuhsinchan/ML2022-HW5Dataset/releases/download/v1.0.2/ted_zh_corpus.deduped.gz
 
+2. Unzip and create a copy of `ted_zh_corpus.deduped` in `data/processed/` and rename the file to `back_translation.raw.zh`
 
+3. Run `python preprocessing.py backtranslate` to clean up and prepare the binary dataset
+
+4. Create a config with `source_lang = "zh"` & `target_lang = "en"` and train the model
+
+5. Run `python predict.py --prediction_only --config {YOUR_CONFIG_FILE}` to generate back-translations.
+
+6. Edit `synthetic_en_path` & `synthetic_zh_path` in `synthetic()` of `preprocessing.py` to point to your back-translations generated in last step.
+
+7. Now you can train with original and synthetic datasets by pointing `datadir` in config to `data/bin/synthetic/`
 
 ### Model performance evaluation
 
@@ -65,4 +75,6 @@ $lr\_rate = d_{\text{model}}^{-0.5}\cdot\min({step\_num}^{-0.5},{step\_num}\cdot
 | dim=128         | 4 | | 128 | | 128 | 512 | 0.1 | | | 19.63 | `transformer_d128` |
 | heads=6         | 4 | 6 | 288 | 1024 | 288 | | 0.1 | | | 23.26 | `transformer_head6` |
 | heads=6, lr=1.5 | 4 | 6 | 288 | 1024 | 288 | | 0.1 | 1.5 | | 23.50 | `transformer_head6_lr15` |
-| heads=6, lr=1.5, lr_decay=0.54 | 4 | 6 | 288 | 1024 | 288 | | 0.1 | 1.5 | 0.54 | 23.26 | `transformer_head6_lr15` |
+| heads=6, lr=1.5, lr_decay=0.54 | 4 | 6 | 288 | 1024 | 288 | | 0.1 | 1.5 | 0.54 | 23.26 | `transformer_head6_lr15_decay-54` |
+| sythetic        | 4 | 6 | 288 | 1024 | 288 | | 0.1 | 1.5 | | 21.78 | `synthetic` |
+
