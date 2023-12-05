@@ -249,6 +249,75 @@ def backtranslate():
     for bin in glob.glob(f'data/bin/train.zh-en.*'):
         Path(bin).rename(bin.replace('train', 'mono'))
 
+def synthetic_binarize(source_prefix, bin_path, src_lang, tgt_lang):
+    src_dict_file = 'data/bin/dict.en.txt'
+    tgt_dict_file = src_dict_file
+
+    bin_files = glob.glob(f'{bin_path}/train*.zh-en.*.bin')
+
+    if len(bin_files) > 0:
+        print(f'{bin_files} exists. skipping synthetic_binarize.')
+    else:
+        command = f"\
+            python -m fairseq_cli.preprocess\
+            --source-lang {src_lang}\
+            --target-lang {tgt_lang}\
+            --trainpref '{source_prefix}/synthetic'\
+            --destdir {bin_path}\
+            --srcdict {src_dict_file}\
+            --tgtdict {tgt_dict_file}\
+            --workers 16\
+            "
+        print(command)
+        subprocess.run(command, shell=True)
+
+def synthetic():
+    src_lang = 'en'
+    tgt_lang = 'zh'
+    data_dir = 'data/processed'
+    data_prefix = f'{data_dir}/synthetic'
+    tokenizer_model = f'data/processed/train_dev.spm8000.model'
+    in_tag = {
+        'synthetic': 'synthetic.clean',
+    }
+
+    # copy synthetic data and rename to synthetic.raw.{en,zh}
+    synthetic_en_path = "checkpoints/back_translate/prediction-only-avg5-en.txt"
+    synthetic_zh_path = "checkpoints/back_translate/prediction-only-avg5-zh.txt"
+    subprocess.run(f'cp {synthetic_en_path} {data_prefix}.raw.en', shell=True)
+    subprocess.run(f'cp {synthetic_zh_path} {data_prefix}.raw.zh', shell=True)
+
+    # synthetic.raw.{en,zh} -> synthetic.{train,valid}.clean.{zh,en}
+    clean_corpus(data_prefix, src_lang, tgt_lang, ratio=-1, max_len=1000, min_len=1)
+    # synthetic.train.clean.{zh,en} -> synthetic.{zh,en}
+    tokenizer(data_dir, in_tag, [src_lang, tgt_lang], tokenizer_model)
+    # data/processed/synthetic.{zh,en} -> data/bin/synthetic/train.en-zh.{zh,en}.bin
+    synthetic_binarize(data_dir, 'data/bin/synthetic', src_lang, tgt_lang)
+
+    # rename to train1
+    for bin in glob.glob(f'data/bin/synthetic/train.*'):
+        Path(bin).rename(bin.replace('train', 'train1'))
+
+    # create links to original datasets {train,valid,test}.en-zh.{zh,en}.bin
+    to_link = [
+        'train.en-zh.zh.bin',
+        'train.en-zh.zh.idx',
+        'train.en-zh.en.bin',
+        'train.en-zh.en.idx',
+        'valid.en-zh.zh.bin',
+        'valid.en-zh.zh.idx',
+        'valid.en-zh.en.bin',
+        'valid.en-zh.en.idx',
+        'test.en-zh.zh.bin',
+        'test.en-zh.zh.idx',
+        'test.en-zh.en.bin',
+        'test.en-zh.en.idx',
+    ]
+
+    for link in to_link:
+        subprocess.run(f'ln -s ../{link} data/bin/synthetic/{link}', shell=True)
+
 if __name__ == '__main__':
     # preprocess()
-    backtranslate()
+    # backtranslate()
+    synthetic()
