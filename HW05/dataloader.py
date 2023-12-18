@@ -66,7 +66,7 @@ def main():
     )
 
     demo_epoch_obj = load_data_iterator(task, "valid", epoch=1, max_tokens=20, num_workers=1, cached=False)
-    demo_iter = demo_epoch_obj.next_epoch_itr(shuffle=True)
+    demo_iter = demo_epoch_obj.next_epoch_itr(shuffle=False)
     sample = next(demo_iter)
     pprint.pprint(sample)
     print(sample['net_input']['src_tokens'].shape)
@@ -80,4 +80,5 @@ if __name__ == "__main__":
     parser.add_argument("--config", required=True, type=str, default="config.py")
     args = parser.parse_args()
     load_config(args.config)
+    cfg.config.use_wandb = False
     main()
