@@ -86,18 +86,23 @@ def generate_prediction(model, task, sequence_generator, device, logger, split="
 
         return bleu.format()
     
-def main(policy, prediction_only=False):
+def main(checkpoint, prediction_only=False):
 
     logger = setup_logger(use_wandb=False)
     logger.info(f'Loading experiment settings from {Path(cfg.config.savedir, "config.py")}')
 
-    if policy == "avg5":
+    if checkpoint == "avg5":
         avg_checkpoints(cfg.config.savedir, logger, num_to_avg=5)
         checkpoint_name = "avg_last_5_checkpoint.pt"
-    if policy == "best":
+    elif checkpoint == "best":
         checkpoint_name = "checkpoint_best.pt"
-    if policy == "last":
+    elif checkpoint == "last":
         checkpoint_name = "checkpoint_last.pt"
+    else:
+        if Path(f"{cfg.config.savedir}/{checkpoint}").exists():
+            checkpoint_name = checkpoint
+        else:
+            raise ValueError(f"checkpoint {checkpoint} not found!")
 
     task_cfg = TranslationConfig(
         data=cfg.config.datadir,
@@ -121,13 +126,14 @@ def main(policy, prediction_only=False):
     sequence_generator = task.build_generator([model], cfg.config)
 
     if prediction_only:
-        return generate_prediction(model, task, sequence_generator, device, logger, split="mono", outfile=f"{cfg.config.savedir}/prediction-only-{policy}.txt", prediction_only=prediction_only)
+        return generate_prediction(model, task, sequence_generator, device, logger, split="mono", outfile=f"{cfg.config.savedir}/prediction-only-{checkpoint}.txt", prediction_only=prediction_only)
     else:
-        return generate_prediction(model, task, sequence_generator, device, logger, split="test", outfile=f"{cfg.config.savedir}/prediction-{policy}.txt")
+        return generate_prediction(model, task, sequence_generator, device, logger, split="test", outfile=f"{cfg.config.savedir}/prediction-{checkpoint}.txt")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--config", required=True, type=str, default="config.py")
+    parser.add_argument("--checkpoint", type=str)
     parser.add_argument("--prediction_only", action="store_true")
     args = parser.parse_args()
 
@@ -139,14 +145,21 @@ if __name__ == "__main__":
     cfg.arch_args = config.arch_args
 
     if args.prediction_only:
-        main("avg5", prediction_only=True)
+        if args.checkpoint:
+            main(args.checkpoint, prediction_only=True)
+        else:
+            main("avg5", prediction_only=True)
 
     else:
-        policies = ["avg5", "best", "last"]
+        if args.checkpoint:
+            checkpoints = [args.checkpoint]
+        else:
+            checkpoints = ["avg5", "best", "last"]
+        
         bleus = []
         
-        for policy in policies:
-            bleus.append(main(policy))
+        for checkpoint in checkpoints:
+            bleus.append(main(checkpoint))
 
-        for policy, bleu in zip(policies, bleus):
+        for policy, bleu in zip(checkpoint, bleus):
             print(f"{policy}: {bleu}")
