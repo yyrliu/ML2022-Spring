@@ -290,7 +290,7 @@ def synthetic():
     subprocess.run(f'cp {synthetic_zh_path} {data_prefix}.raw.zh', shell=True)
 
     # synthetic.raw.{en,zh} -> synthetic.{train,valid}.clean.{zh,en}
-    clean_corpus(data_prefix, src_lang, tgt_lang, ratio=-1, max_len=1000, min_len=1)
+    clean_corpus(data_prefix, src_lang, tgt_lang, max_len=-1, min_len=5)
     # synthetic.train.clean.{zh,en} -> synthetic.{zh,en}
     tokenizer(data_dir, in_tag, [src_lang, tgt_lang], tokenizer_model)
     # data/processed/synthetic.{zh,en} -> data/bin/synthetic/train.en-zh.{zh,en}.bin
