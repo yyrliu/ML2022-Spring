@@ -76,5 +76,21 @@ $lr\_rate = d_{\text{model}}^{-0.5}\cdot\min({step\_num}^{-0.5},{step\_num}\cdot
 | heads=6         | 4 | 6 | 288 | 1024 | 288 | | 0.1 | | | 23.26 | `transformer_head6` |
 | heads=6, lr=1.5 | 4 | 6 | 288 | 1024 | 288 | | 0.1 | 1.5 | | 23.50 | `transformer_head6_lr15` |
 | heads=6, lr=1.5, lr_decay=0.54 | 4 | 6 | 288 | 1024 | 288 | | 0.1 | 1.5 | 0.54 | 23.26 | `transformer_head6_lr15_decay-54` |
-| sythetic        | 4 | 6 | 288 | 1024 | 288 | | 0.1 | 1.5 | | 21.78 | `synthetic` |
 
+#### Training with Additional Synthesized Training Data
+
+`tf_base` represent the base model architecture in [Attention Is All You Need](https://arxiv.org/pdf/1706.03762.pdf) 
+
+##### Back-translation Model Evaluation
+
+Sign of overfitting has been observed in `tf_base` with increasing `valid_loss` while `train_loss` continued to decrease, therefore higher dropoff ratio is used in `tf_base_drop=0.2` and the issue was resolved. However, during BLEU test, `tf_base` showed best result regardless the overfitting issue, therefore it was chosen as one of the synthetic datasets.
+
+**The `BLEU_AVG_Last_5` is not compareable to other tables since it evaluates the back translation (zh to en) performance**
+
+| Entry            | encoder_layers | heads | d_encoder | d_encoder_ffn | d_encoder | d_decoder_ffn | dropout | lr_factor | lr_decay | BLEU_AVG_Last_5 | `path` |
+|------------------|----------------|-------|-----------|---------------|-----------|---------------|---------|-----------|----------|-----------------|--------|
+| default          | 4 | 6 | 288 | 1024 | 288 | 1024 | 0.1 | 1.5 | 0.5 | 18.64 | `back_translate` |
+| tf_base          | 6 | 8 | 512 | 2048 | 512 | 2048 | | | | 23.79 | `back_translate_base` |
+| tf_base_drop=0.2 | 6 | 8 | 512 | 2048 | 512 | 2048 | 0.2 | | | 23.50 | `back_translate_base_drop02` |
+
+#### Performance of Model Trained with Oringinal & Synthesized Data
