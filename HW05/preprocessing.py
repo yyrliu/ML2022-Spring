@@ -277,6 +277,7 @@ def synthetic():
     tgt_lang = 'zh'
     data_dir = 'data/processed'
     data_prefix = f'{data_dir}/synthetic'
+    bin_path = 'data/bin/synthetic'
     tokenizer_model = f'data/processed/train_dev.spm8000.model'
     in_tag = {
         'synthetic': 'synthetic.clean',
@@ -293,10 +294,13 @@ def synthetic():
     # synthetic.train.clean.{zh,en} -> synthetic.{zh,en}
     tokenizer(data_dir, in_tag, [src_lang, tgt_lang], tokenizer_model)
     # data/processed/synthetic.{zh,en} -> data/bin/synthetic/train.en-zh.{zh,en}.bin
-    synthetic_binarize(data_dir, 'data/bin/synthetic', src_lang, tgt_lang)
+    if not Path(bin_path).exists():
+        Path(bin_path).mkdir(parents=True)
+
+    synthetic_binarize(data_dir, bin_path, src_lang, tgt_lang)
 
     # rename to train1
-    for bin in glob.glob(f'data/bin/synthetic/train.*'):
+    for bin in glob.glob(f'{bin_path}/train.*'):
         Path(bin).rename(bin.replace('train', 'train1'))
 
     # create links to original datasets {train,valid,test}.en-zh.{zh,en}.bin
@@ -316,7 +320,7 @@ def synthetic():
     ]
 
     for link in to_link:
-        subprocess.run(f'ln -s ../{link} data/bin/synthetic/{link}', shell=True)
+        subprocess.run(f'ln -s ../{link} {str(Path(bin_path, link))}', shell=True)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -327,11 +331,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.command == 'preprocess':
-        print('preprocess')
-        # preprocess()
+        preprocess()
     elif args.command == 'backtranslate':
-        print('backtranslate')
-        # backtranslate()
+        backtranslate()
     elif args.command == 'synthetic':
-        print('synthetic')
-        # synthetic()
+        synthetic()
