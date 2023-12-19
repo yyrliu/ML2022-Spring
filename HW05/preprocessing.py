@@ -263,7 +263,7 @@ def synthetic_binarize(source_prefix, bin_path, src_lang, tgt_lang):
             python -m fairseq_cli.preprocess\
             --source-lang {src_lang}\
             --target-lang {tgt_lang}\
-            --trainpref '{source_prefix}/synthetic'\
+            --trainpref '{source_prefix}'\
             --destdir {bin_path}\
             --srcdict {src_dict_file}\
             --tgtdict {tgt_dict_file}\
@@ -276,13 +276,15 @@ def synthetic():
     src_lang = 'en'
     tgt_lang = 'zh'
     data_dir = 'data/processed'
-    data_prefix = f'{data_dir}/synthetic'
-    bin_path = 'data/bin/synthetic'
+    data_prefix = 'synthetic_back_translate_base_drop02'
     tokenizer_model = f'data/processed/train_dev.spm8000.model'
     in_tag = {
-        'synthetic': 'synthetic.clean',
+        data_prefix: f'{data_prefix}.clean',
     }
 
+    bin_path = f'data/bin/{data_prefix}'
+    data_prefix = f'{data_dir}/{data_prefix}'
+    
     # copy synthetic data and rename to synthetic.raw.{en,zh}
     synthetic_en_path = "checkpoints/back_translate/prediction-only-avg5-en.txt"
     synthetic_zh_path = "checkpoints/back_translate/prediction-only-avg5-zh.txt"
@@ -297,14 +299,18 @@ def synthetic():
     if not Path(bin_path).exists():
         Path(bin_path).mkdir(parents=True)
 
-    synthetic_binarize(data_dir, bin_path, src_lang, tgt_lang)
+    if len(glob.glob(f'{bin_path}/*.bin')) > 0:
+        print(f'Bin files exists. Skipping synthetic_binarize.')
+        return
+
+    synthetic_binarize(data_prefix, bin_path, src_lang, tgt_lang)
 
     # rename to train1
     for bin in glob.glob(f'{bin_path}/train.*'):
         Path(bin).rename(bin.replace('train', 'train1'))
 
     # create links to original datasets {train,valid,test}.en-zh.{zh,en}.bin
-    to_link = [
+    to_links = [
         'train.en-zh.zh.bin',
         'train.en-zh.zh.idx',
         'train.en-zh.en.bin',
@@ -319,7 +325,7 @@ def synthetic():
         'test.en-zh.en.idx',
     ]
 
-    for link in to_link:
+    for link in to_links:
         subprocess.run(f'ln -s ../{link} {str(Path(bin_path, link))}', shell=True)
 
 if __name__ == '__main__':
