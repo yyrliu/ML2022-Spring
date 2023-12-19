@@ -48,8 +48,8 @@ Additional rules added to `HW05/preprocessing.py`
 | [LR scheduling + train longer](#lr-scheduling--train-longer) (`lr_factor=2`) | 17.27 | 17.06 | 17.06 |`lr_scheduler_30ep` |
 | [LR scheduling](#lr-scheduling) (`lr_factor=1`) | 17.15 | 17.55 | 17.55 |`lr_scheduler` |
 | [LR scheduling + train longer](#lr-scheduling--train-longer) (`lr_factor=1`) | 18.10 | 17.90 | 17.85 |`lr_scheduler_30ep` |
-| [Transformer (best)](#transformer) | 26.61 | 24.33 | 25.80 | Listed in [Transformer](#transformer) |
-| [Trained with synthesized data (best)](#training-with-additional-synthesized-training-data) | 27.30 | 26.67 | 26.90 | Listed in [Transformer](#transformer) |
+| [Transformer](#transformer) (best) | 26.61 | 24.33 | 25.80 | Listed in [Transformer](#transformer) |
+| [Trained with synthesized data](#training-with-additional-synthesized-training-data) (best) | 27.30 | 26.67 | 26.90 | Listed in [Synthetic](#performance-of-model-trained-with-oringinal--synthesized-data) |
 
 ## Experimental details
 
@@ -60,10 +60,10 @@ Default training of template code
 
 ### LR scheduling
 - Add scheduler for learing rate
-$lr\_rate = d_{\text{model}}^{-0.5}\cdot\min({step\_num}^{-0.5},{step\_num}\cdot{warmup\_steps}^{-1.5})$
+$`lr\_rate = d_{\text{model}}^{-0.5}\cdot\min({step\_num}^{-0.5},{step\_num}\cdot{warmup\_steps}^{-1.5})`$
 
 ### LR scheduling + train longer
-- $lr\_rate = d_{\text{model}}^{-0.5}\cdot\min({step\_num}^{-0.5},{step\_num}\cdot{warmup\_steps}^{-1.5})$
+- $`lr\_rate = d_{\text{model}}^{-0.5}\cdot\min({step\_num}^{-0.5},{step\_num}\cdot{warmup\_steps}^{-1.5})`$
 
 - Train for 30 epoches instead of 15 epochs (default)
 
@@ -76,7 +76,7 @@ Sign of overfitting has been observed in `tf_base` with increasing `valid_loss` 
 
 | Entry           | encoder_layers | heads | d_encoder | d_encoder_ffn | d_encoder | d_decoder_ffn | dropout | lr_factor | lr_decay | BLEU_AVG_Last_5 | `path` |
 |-----------------|----------------|-------|-----------|---------------|-----------|---------------|---------|-----------|----------|-----------------|--------|
-| Default         | 1 | 4 | 256 | 512 | 256 | 1024 | 0.3 | 1.0 | 0.5 | 15.46 | `transformer` |
+| default         | 1 | 4 | 256 | 512 | 256 | 1024 | 0.3 | 1.0 | 0.5 | 15.46 | `transformer` |
 | layers=4        | 4 | | | | | | 0.1 | | | 22.18 | `transformer_layers4` |
 | ffn=1024        | 4 | | | 1024 | | | 0.1 | | | 22.92 | `transformer_ffn1024` |
 | dim=128         | 4 | | 128 | | 128 | 512 | 0.1 | | | 19.63 | `transformer_d128` |
@@ -86,9 +86,13 @@ Sign of overfitting has been observed in `tf_base` with increasing `valid_loss` 
 | tf_base         | 6 | 8 | 512 | 2048 | 512 | 2048 | 0.1 | | | 26.61 | `transformer_base` |
 | tf_base, drop=0.2 | 6 | 8 | 512 | 2048 | 512 | 2048 | 0.2 | | | 25.50 | `transformer_base_drop02` |
 
+*Unlisted values are identical to those of the default model.
+
 ### Training with Additional Synthesized Training Data
 
 #### Back-translation Model Evaluation
+
+- Train for 30 epoches
 
 Sign of overfitting has been observed in `tf_base` with increasing `valid_loss` while `train_loss` continued to decrease, therefore higher dropoff ratio is used in `tf_base, drop=0.2` and the issue was resolved. However, during BLEU test, `tf_base` showed best result regardless the overfitting issue, therefore both synthetic datasets were applied [below](#performance-of-model-trained-with-oringinal--synthesized-data).
 
@@ -100,9 +104,14 @@ Sign of overfitting has been observed in `tf_base` with increasing `valid_loss` 
 | tf_base          | 6 | 8 | 512 | 2048 | 512 | 2048 | | | | 23.79 | `back_translate_base` |
 | tf_base, drop=0.2 | 6 | 8 | 512 | 2048 | 512 | 2048 | 0.2 | | | 23.50 | `back_translate_base_drop02` |
 
+*Unlisted values are identical to those of the default model.
+
+**`tf_base` represents the base model architecture in [Attention Is All You Need](https://arxiv.org/pdf/1706.03762.pdf) 
+
 ### Performance of Model Trained with Oringinal & Synthesized Data
 
 - Oringinal and synthetic dataset created from back-translation were combined to train the model.
+- Train for 30 epoches
 
 | Entry              | encoder_layers | heads | d_encoder | d_encoder_ffn | d_encoder | d_decoder_ffn | dropout | lr_factor | lr_decay | synthetic_data_model | BLEU_AVG_Last_5 | `path` |
 |--------------------|----------------|-------|-----------|---------------|-----------|---------------|---------|-----------|----------|----------------------|-----------------|--------|
@@ -115,4 +124,6 @@ Sign of overfitting has been observed in `tf_base` with increasing `valid_loss` 
 | tf_base, from_back_translate_tf_base | 6 | 8 | 512 | 2048 | 512 | 2048 | | | | `back_translate_base` | 27.30 | `synthetic_base_from_bt_base` |
 | tf_base, from_back_translate_tf_base_drop=0.2 | 6 | 8 | 512 | 2048 | 512 | 2048 | | | | `back_translate_base_drop02` | 27.02 | `synthetic_base_from_bt_base_drop02` |
 
-*`tf_base` represents the base model architecture in [Attention Is All You Need](https://arxiv.org/pdf/1706.03762.pdf) 
+*Unlisted values are identical to those of the default model.
+
+**`tf_base` represents the base model architecture in [Attention Is All You Need](https://arxiv.org/pdf/1706.03762.pdf) 
