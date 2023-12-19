@@ -286,8 +286,8 @@ def synthetic():
     data_prefix = f'{data_dir}/{data_prefix}'
     
     # copy synthetic data and rename to synthetic.raw.{en,zh}
-    synthetic_en_path = "checkpoints/back_translate/prediction-only-avg5-en.txt"
-    synthetic_zh_path = "checkpoints/back_translate/prediction-only-avg5-zh.txt"
+    synthetic_en_path = "checkpoints/back_translate_base/prediction-only-avg5-en.txt"
+    synthetic_zh_path = "checkpoints/back_translate_base/prediction-only-avg5-zh.txt"
     subprocess.run(f'cp {synthetic_en_path} {data_prefix}.raw.en', shell=True)
     subprocess.run(f'cp {synthetic_zh_path} {data_prefix}.raw.zh', shell=True)
 
