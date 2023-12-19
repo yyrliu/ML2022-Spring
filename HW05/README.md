@@ -1,3 +1,5 @@
+## Setup & Preprocessing
+
 ### Env config divert from original setup
 
 Due to [Dataclass error while importing Fairseq in Python 3.11](https://github.com/facebookresearch/fairseq/issues/5012), a modified version of `Fairseq` is installed with `pip install git+https://github.com/One-sixth/fairseq.git`
@@ -6,7 +8,7 @@ Due to [Dataclass error while importing Fairseq in Python 3.11](https://github.c
 
 Since the data pair for `test` is not available, [TED Talks 2013](https://object.pouta.csc.fi/OPUS-TED2013/v1.1/moses/en-zh.txt.zip) from [OPUS](https://opus.nlpl.eu/index.php) is used for my personal performance evaluation.
 
-Preprocessing for `TED Talks 2013` 
+Preprocessing of `TED Talks 2013` 
 
 1. Run script `zh_cn_to_zh_tw.py` to convert `data/downloaded/test/TED2013.en-zh.zh` from **Simplified Chinese** to **Traditional Chinese  (Taiwan Standard) with Taiwanese idiom** by [OpenCC](https://github.com/BYVoid/OpenCC). The proceesed file is saved to `data/processed/test.raw.zh`
 2. Create copy of the correspomding english dataset `cp data/downloaded/test/TED2013.en-zh.en data/processed/test.raw.en`.
@@ -37,7 +39,7 @@ Additional rules added to `HW05/preprocessing.py`
 
 `generate_prediction()` in `optimizer` module uses `sacrebleu.corpus_bleu` to evaluate model performance against reference `test.clean.zh` described in [Preprocessing of private test dataset](#preprocessing-of-private-test-dataset)
 
-### Results
+## Results
 
 | Entry      | BLEU_AVG_Last_5 | BLEU_Best | BLEU_Last |`path`|
 |------------|-----------------|-----------|-----------|------|
@@ -46,26 +48,31 @@ Additional rules added to `HW05/preprocessing.py`
 | [LR scheduling + train longer](#lr-scheduling--train-longer) (`lr_factor=2`) | 17.27 | 17.06 | 17.06 |`lr_scheduler_30ep` |
 | [LR scheduling](#lr-scheduling) (`lr_factor=1`) | 17.15 | 17.55 | 17.55 |`lr_scheduler` |
 | [LR scheduling + train longer](#lr-scheduling--train-longer) (`lr_factor=1`) | 18.10 | 17.90 | 17.85 |`lr_scheduler_30ep` |
-| [Transformer](#transformer) | 22.18 | 22.15 | 21.73 | Listed in [Transformer](#transformer) |
+| [Transformer (best)](#transformer) | 26.61 | 24.33 | 25.80 | Listed in [Transformer](#transformer) |
+| [Trained with synthesized data (best)](#training-with-additional-synthesized-training-data) | 27.30 | 26.67 | 26.90 | Listed in [Transformer](#transformer) |
 
-### Experimental details
+## Experimental details
 
-#### Base line
+Training logs are available on [wandb](https://wandb.ai/yyrliu/hw5.seq2seq/overview?workspace=user-yyrliu).
+
+### Base line
 Default training of template code
 
-#### LR scheduling
+### LR scheduling
 - Add scheduler for learing rate
 $lr\_rate = d_{\text{model}}^{-0.5}\cdot\min({step\_num}^{-0.5},{step\_num}\cdot{warmup\_steps}^{-1.5})$
 
-#### LR scheduling + train longer
+### LR scheduling + train longer
 - $lr\_rate = d_{\text{model}}^{-0.5}\cdot\min({step\_num}^{-0.5},{step\_num}\cdot{warmup\_steps}^{-1.5})$
 
 - Train for 30 epoches instead of 15 epochs (default)
 
-#### Transformer
+### Transformer
 - Switch to transformer model
 - Train for 30 epoches
 - Fine tune transformer architecture
+
+Sign of overfitting has been observed in `tf_base` with increasing `valid_loss` while `train_loss` continued to decrease, therefore higher dropoff ratio is used in `tf_base, drop=0.2` and the issue was resolved. However, during BLEU test, `tf_base` showed best result regardless the overfitting issue, same phenomenon observed during [back-translation](#back-translation-model-evaluation).
 
 | Entry           | encoder_layers | heads | d_encoder | d_encoder_ffn | d_encoder | d_decoder_ffn | dropout | lr_factor | lr_decay | BLEU_AVG_Last_5 | `path` |
 |-----------------|----------------|-------|-----------|---------------|-----------|---------------|---------|-----------|----------|-----------------|--------|
@@ -76,21 +83,36 @@ $lr\_rate = d_{\text{model}}^{-0.5}\cdot\min({step\_num}^{-0.5},{step\_num}\cdot
 | heads=6         | 4 | 6 | 288 | 1024 | 288 | | 0.1 | | | 23.26 | `transformer_head6` |
 | heads=6, lr=1.5 | 4 | 6 | 288 | 1024 | 288 | | 0.1 | 1.5 | | 23.50 | `transformer_head6_lr15` |
 | heads=6, lr=1.5, lr_decay=0.54 | 4 | 6 | 288 | 1024 | 288 | | 0.1 | 1.5 | 0.54 | 23.26 | `transformer_head6_lr15_decay-54` |
+| tf_base         | 6 | 8 | 512 | 2048 | 512 | 2048 | 0.1 | | | 26.61 | `transformer_base` |
+| tf_base, drop=0.2 | 6 | 8 | 512 | 2048 | 512 | 2048 | 0.2 | | | 25.50 | `transformer_base_drop02` |
 
-#### Training with Additional Synthesized Training Data
+### Training with Additional Synthesized Training Data
 
-`tf_base` represent the base model architecture in [Attention Is All You Need](https://arxiv.org/pdf/1706.03762.pdf) 
+#### Back-translation Model Evaluation
 
-##### Back-translation Model Evaluation
+Sign of overfitting has been observed in `tf_base` with increasing `valid_loss` while `train_loss` continued to decrease, therefore higher dropoff ratio is used in `tf_base, drop=0.2` and the issue was resolved. However, during BLEU test, `tf_base` showed best result regardless the overfitting issue, therefore both synthetic datasets were applied [below](#performance-of-model-trained-with-oringinal--synthesized-data).
 
-Sign of overfitting has been observed in `tf_base` with increasing `valid_loss` while `train_loss` continued to decrease, therefore higher dropoff ratio is used in `tf_base_drop=0.2` and the issue was resolved. However, during BLEU test, `tf_base` showed best result regardless the overfitting issue, therefore it was chosen as one of the synthetic datasets.
-
-**The `BLEU_AVG_Last_5` is not compareable to other tables since it evaluates the back translation (zh to en) performance**
+**Note: The `BLEU_AVG_Last_5` is not compareable to other tables since it evaluates the back translation (zh to en) performance**
 
 | Entry            | encoder_layers | heads | d_encoder | d_encoder_ffn | d_encoder | d_decoder_ffn | dropout | lr_factor | lr_decay | BLEU_AVG_Last_5 | `path` |
 |------------------|----------------|-------|-----------|---------------|-----------|---------------|---------|-----------|----------|-----------------|--------|
 | default          | 4 | 6 | 288 | 1024 | 288 | 1024 | 0.1 | 1.5 | 0.5 | 18.64 | `back_translate` |
 | tf_base          | 6 | 8 | 512 | 2048 | 512 | 2048 | | | | 23.79 | `back_translate_base` |
-| tf_base_drop=0.2 | 6 | 8 | 512 | 2048 | 512 | 2048 | 0.2 | | | 23.50 | `back_translate_base_drop02` |
+| tf_base, drop=0.2 | 6 | 8 | 512 | 2048 | 512 | 2048 | 0.2 | | | 23.50 | `back_translate_base_drop02` |
 
-#### Performance of Model Trained with Oringinal & Synthesized Data
+### Performance of Model Trained with Oringinal & Synthesized Data
+
+- Oringinal and synthetic dataset created from back-translation were combined to train the model.
+
+| Entry              | encoder_layers | heads | d_encoder | d_encoder_ffn | d_encoder | d_decoder_ffn | dropout | lr_factor | lr_decay | synthetic_data_model | BLEU_AVG_Last_5 | `path` |
+|--------------------|----------------|-------|-----------|---------------|-----------|---------------|---------|-----------|----------|----------------------|-----------------|--------|
+| default            | 4 | 6 | 288 | 1024 | 288 | 1024 | 0.1 | 1.5 | 0.5 | `back_translate` | 23.79 | `synthetic` |
+| lr=0.1             | | | | | | | | 0.1 | | `back_translate` | 23.86 | `synthetic_lr10` |
+| ffn=1280           | | | | 1280 | | 1280 | | | | `back_translate` | 24.62 | `synthetic_ffn1280` |
+| layers=6           | 6 | | | | | | | | | `back_translate` | 24.37 | `synthetic_layers6` |
+| layers=6, ffn=1280 | 6 | | | 1280 | | 1280 | | | | `back_translate` | 24.62 | `synthetic_layers6` |
+| tf_base            | 6 | 8 | 512 | 2048 | 512 | 2048 | | | | `back_translate` | 26.56 | `synthetic_base` |
+| tf_base, from_back_translate_tf_base | 6 | 8 | 512 | 2048 | 512 | 2048 | | | | `back_translate_base` | 27.30 | `synthetic_base_from_bt_base` |
+| tf_base, from_back_translate_tf_base_drop=0.2 | 6 | 8 | 512 | 2048 | 512 | 2048 | | | | `back_translate_base_drop02` | 27.02 | `synthetic_base_from_bt_base_drop02` |
+
+*`tf_base` represents the base model architecture in [Attention Is All You Need](https://arxiv.org/pdf/1706.03762.pdf) 
