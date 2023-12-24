@@ -123,6 +123,7 @@ Sign of overfitting has been observed in `tf_base` with increasing `valid_loss` 
 | tf_base            | 6 | 8 | 512 | 2048 | 512 | 2048 | | | | `back_translate` | 26.56 | `synthetic_base` |
 | tf_base, from_back_translate_tf_base | 6 | 8 | 512 | 2048 | 512 | 2048 | | | | `back_translate_base` | 27.30 | `synthetic_base_from_bt_base` |
 | tf_base, from_back_translate_tf_base_drop=0.2 | 6 | 8 | 512 | 2048 | 512 | 2048 | | | | `back_translate_base_drop02` | 27.02 | `synthetic_base_from_bt_base_drop02` |
+| tf_base, epochs=45, from_back_translate_tf_base | 6 | 8 | 512 | 2048 | 512 | 2048 | | | | `back_translate_base` | 28.33 | `synthetic_base_from_bt_base` |
 
 *Unlisted values are identical to those of the default model.
 
