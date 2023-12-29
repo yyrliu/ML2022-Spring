@@ -1,10 +1,13 @@
+import random
 from argparse import Namespace
 from importlib import import_module
 from pathlib import Path
-import torch
+
 import numpy as np
-import random
+import torch
+
 import config as cfg
+
 
 def fix_random_seed(seed):
     # Python built-in random module
@@ -18,6 +21,7 @@ def fix_random_seed(seed):
         torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.benchmark = False
     torch.backends.cudnn.deterministic = True
+
 
 def load_config(config_path):
     config_path = Path(config_path).resolve().relative_to(Path.cwd())

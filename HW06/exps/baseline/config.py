@@ -1,5 +1,3 @@
-from argparse import Namespace
-
 config = {
     "model_type": "GAN",
     "batch_size": 64,
