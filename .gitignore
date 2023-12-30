@@ -9,3 +9,4 @@
 **/checkpoints/*/*.txt
 !prediction*.txt
 **/wandb
+HW06/exps/baseline/output
