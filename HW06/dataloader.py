@@ -1,6 +1,6 @@
 import glob
-import os
 import logging
+from pathlib import Path
 
 import matplotlib.pyplot as plt
 import torchvision
@@ -44,7 +44,7 @@ def get_dataset(data_dir):
 
 if __name__ == "__main__":
     workspace_dir = "./data"
-    temp_dataset = get_dataset(os.path.join(workspace_dir, "faces"))
+    temp_dataset = get_dataset(Path(workspace_dir, "faces"))
     images = [temp_dataset[i] for i in range(4)]
     print(images[0].shape)
     grid_img = torchvision.utils.make_grid(images, nrow=4)

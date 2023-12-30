@@ -1,21 +1,19 @@
 import argparse
 import glob
-import logging
 import os
 from pathlib import Path
 
-import config as cfg
 import matplotlib.pyplot as plt
-import numpy as np
 import torch
 import torchvision
-import wandb
+from torch.utils.data import DataLoader
+from tqdm import tqdm
 
+import config as cfg
+import wandb
 from dataloader import get_dataset
 from loss_fn import get_loss_fn
 from model import Discriminator, Generator
-from torch.utils.data import DataLoader
-from tqdm import tqdm
 from utils import fix_random_seed, load_config, setup_logger
 
 
@@ -87,8 +85,8 @@ def train(overwrite=False):
         dataset, batch_size=cfg.config.batch_size, shuffle=True, num_workers=8
     )
 
-    generator = Generator(100)
-    discriminator = Discriminator(3)
+    generator = Generator(cfg.config.z_dim)
+    discriminator = Discriminator()
 
     loss_fn_d, loss_fn_g = get_loss_fn(cfg.config.model_type)
 

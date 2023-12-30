@@ -2,3 +2,18 @@ from argparse import Namespace
 
 config = Namespace()
 arch_config = Namespace()
+
+# config = {
+#     "model_type": "GAN",
+#     "batch_size": 64,
+#     "lr": 1e-4,
+#     "n_epoch": 1,
+#     "n_critic": 1,
+#     "z_dim": 100,
+#     "workspace_dir": None,
+#     "data_dir": "./data/faces",
+#     "use_wandb": False,
+#     "log_step": 50,
+# }
+
+# arch_args = {}

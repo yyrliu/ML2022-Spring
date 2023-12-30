@@ -72,7 +72,7 @@ class Discriminator(nn.Module):
     Output shape: (batch)
     """
 
-    def __init__(self, in_dim, feature_dim=64):
+    def __init__(self, in_dim=3, feature_dim=64):
         super(Discriminator, self).__init__()
 
         # input: (batch, 3, 64, 64)
