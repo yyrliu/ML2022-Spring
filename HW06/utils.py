@@ -1,3 +1,4 @@
+import logging
 import random
 from argparse import Namespace
 from importlib import import_module
@@ -30,3 +31,21 @@ def load_config(config_path):
     cfg.arch_args = Namespace(**config.arch_args)
     cfg.config.workspace_dir = str(config_path.parent)
     cfg.config.ckpt_dir = str(Path(cfg.config.workspace_dir, "checkpoints"))
+
+
+def setup_logger(proj, use_wandb=True):
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+
+    logger = logging.getLogger(proj)
+    if cfg.config.use_wandb and use_wandb:
+        import wandb
+        wandb.init(
+            project=proj, name=Path(cfg.config.workspace_dir).stem, config=cfg.config
+        )
+        wandb.config.update(vars(cfg.arch_args))
+
+    return logger

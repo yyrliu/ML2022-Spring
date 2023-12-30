@@ -7,6 +7,8 @@ config = {
     "z_dim": 100,
     "workspace_dir": None,
     "data_dir": "./data/faces",
+    "use_wandb": False,
+    "log_step": 50,
 }
 
 arch_args = {}

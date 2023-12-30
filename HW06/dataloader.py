@@ -1,11 +1,13 @@
 import glob
 import os
+import logging
 
 import matplotlib.pyplot as plt
 import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data import Dataset
 
+logger = logging.getLogger(__name__)
 
 # prepare for CrypkoDataset
 class CrypkoDataset(Dataset):
@@ -25,6 +27,7 @@ class CrypkoDataset(Dataset):
 
 
 def get_dataset(data_dir):
+    logger.info(f"Loading dataset from {data_dir}")
     fnames = glob.glob(f"{data_dir}/*")
     compose = [
         transforms.ToPILImage(),
@@ -34,6 +37,7 @@ def get_dataset(data_dir):
     ]
     transform = transforms.Compose(compose)
     dataset = CrypkoDataset(fnames, transform)
+    logger.info(f"Dataset loaded, size: {len(dataset)}")
     return dataset
 
 
