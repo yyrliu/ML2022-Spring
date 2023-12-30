@@ -23,7 +23,8 @@ def discriminator_train_one_step(
     discriminator, generator, r_imgs, opt, loss_fn, device, stats
 ):
     z = torch.randn(cfg.config.batch_size, cfg.config.z_dim).to(device)
-    f_imgs = generator(z)
+    with torch.no_grad():
+        f_imgs = generator(z)
     discriminator.train()
     r_imgs = r_imgs.to(device)
 
