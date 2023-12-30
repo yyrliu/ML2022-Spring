@@ -43,6 +43,7 @@ def setup_logger(proj, use_wandb=True):
     logger = logging.getLogger(proj)
     if cfg.config.use_wandb and use_wandb:
         import wandb
+
         wandb.init(
             project=proj, name=Path(cfg.config.workspace_dir).stem, config=cfg.config
         )

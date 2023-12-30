@@ -9,6 +9,7 @@ from torch.utils.data import Dataset
 
 logger = logging.getLogger(__name__)
 
+
 # prepare for CrypkoDataset
 class CrypkoDataset(Dataset):
     def __init__(self, fnames, transform):

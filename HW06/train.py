@@ -27,10 +27,8 @@ def discriminator_train_one_step(
         f_imgs = generator(z)
     discriminator.train()
     r_imgs = r_imgs.to(device)
-
     r_logit = discriminator(r_imgs)
     f_logit = discriminator(f_imgs)
-
     loss = loss_fn(r_logit, f_logit)
     discriminator.zero_grad()
     loss.backward()
@@ -101,17 +99,15 @@ def train(overwrite=False):
         generator.parameters(), lr=cfg.config.lr, betas=(0.5, 0.999)
     )
 
-    
     z_samples = torch.randn(100, cfg.config.z_dim).to(device)
 
     generator = generator.to(device)
     discriminator = discriminator.to(device)
 
     step = 0
-    stats = { "d_loss": None, "g_loss": None}
+    stats = {"d_loss": None, "g_loss": None}
 
     for epoch in range(cfg.config.n_epoch):
-
         progress_bar = tqdm(dataloader, desc=f"Epoch {epoch + 1}", leave=True)
         for data in progress_bar:
             stats = discriminator_train_one_step(
@@ -141,7 +137,7 @@ def train(overwrite=False):
         if cfg.config.use_wandb:
             image = wandb.Image(img_sameple_path, caption=f"epoch_{epoch+1:02d}")
             wandb.log({"image": image}, step=step)
-        
+
         if (epoch + 1) % 5 == 0 or epoch == 0:
             save_checkpoint(generator, discriminator, cfg.config.ckpt_dir, epoch)
 
