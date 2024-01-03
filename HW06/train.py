@@ -12,6 +12,7 @@ from tqdm import tqdm
 import config as cfg
 import wandb
 from dataloader import get_dataset
+from inference import inference_during_train
 from loss_fn import get_loss_fn
 from model import Discriminator, Generator
 from utils import fix_random_seed, load_config, setup_logger
@@ -125,7 +126,12 @@ def train(overwrite=False):
                 stats = generator_train_one_step(
                     generator, discriminator, opt_G, loss_fn_g, device, stats
                 )
-            progress_bar.set_postfix(d_loss=stats["dis/loss"], g_loss=stats["gen/loss"], step=step, refresh=False)
+            progress_bar.set_postfix(
+                d_loss=stats["dis/loss"],
+                g_loss=stats["gen/loss"],
+                step=step,
+                refresh=False,
+            )
             if cfg.config.use_wandb and step % cfg.config.log_step == 0:
                 wandb.log(stats, step=step)
             step += 1
@@ -142,7 +148,10 @@ def train(overwrite=False):
             nrow=10,
         )
 
+        result = inference_during_train(generator, step, device)
+
         if cfg.config.use_wandb:
+            wandb.log(result, step=step, commit=False)
             image = wandb.Image(img_sameple_path, caption=f"epoch_{epoch+1:02d}")
             wandb.log({"image": image}, step=step)
 

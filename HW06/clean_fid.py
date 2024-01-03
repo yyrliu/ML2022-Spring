@@ -7,7 +7,7 @@ from pathlib import Path
 from cleanfid import fid
 
 
-def eval(dir, quiet=False):
+def eval(dir, quiet=False, valid_sets=None):
     if isinstance(dir, Path):
         dir = str(dir)
 
@@ -16,6 +16,11 @@ def eval(dir, quiet=False):
         "animeface": "./data/images",
         "animeface_2000": "./data/validate_set",
     }
+
+    if valid_sets is not None:
+        if isinstance(valid_sets, str):
+            valid_sets = [valid_sets]
+        valid_dirs = {k: v for k, v in valid_dirs.items() if k in valid_sets}
 
     print(
         f"Found {len(glob.glob(f'{dir}/*.jpg'))} images in {Path(dir).resolve().relative_to(Path.cwd())}"

@@ -9,6 +9,8 @@ config = {
     "data_dir": "./data/faces",
     "use_wandb": True,
     "log_step": 50,
+    "valid_fid_set": "animeface_2000",
+    "valid_afd_thres": 0.895,
 }
 
 arch_args = {}

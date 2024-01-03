@@ -1,5 +1,6 @@
 import argparse
 import glob
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -26,8 +27,14 @@ def get_dataset(data_dir):
     return dataset
 
 
-def predict(source, weights, img_size, thres, list_negative, progress, quiet, save_raw=False):
+def predict(
+    source, weights, img_size, thres, list_negative, progress, quiet, save_raw=False
+):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # workaround for namespace collision
+    # ref: https://github.com/pytorch/hub/issues/243#issuecomment-942403391
+    sys_modules_utils_value = sys.modules.pop("utils", None)
 
     model = torch.hub.load(
         "ultralytics/yolov5",
@@ -36,6 +43,9 @@ def predict(source, weights, img_size, thres, list_negative, progress, quiet, sa
         verbose=not quiet,
         _verbose=not quiet,
     ).to(device)
+
+    if sys_modules_utils_value is not None:
+        sys.modules["utils"] = sys_modules_utils_value
 
     model.eval()
     positive = 0
@@ -66,7 +76,9 @@ def predict(source, weights, img_size, thres, list_negative, progress, quiet, sa
                     nagative_list.append(outputs.files[i])
 
                 if save_raw:
-                    raw_results.append(pred[0].cpu().numpy() if pred.shape[0] > 0 else np.zeros(6))
+                    raw_results.append(
+                        pred[0].cpu().numpy() if pred.shape[0] > 0 else np.zeros(6)
+                    )
 
     results = {
         "positive": positive,
@@ -83,7 +95,9 @@ def predict(source, weights, img_size, thres, list_negative, progress, quiet, sa
     )
 
     if save_raw:
-        np.save(Path(source).resolve().joinpath("raw_results.npy"), np.asarray(raw_results))
+        np.save(
+            Path(source).resolve().joinpath("raw_results.npy"), np.asarray(raw_results)
+        )
 
     if list_negative:
         print("Negative list:")
@@ -92,13 +106,13 @@ def predict(source, weights, img_size, thres, list_negative, progress, quiet, sa
     return results
 
 
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("source", type=str, help="source")
     parser.add_argument("-q", "--quiet", action="store_true")
-    parser.add_argument("-p", "--progress", action="store_true", help="show progress bar")
+    parser.add_argument(
+        "-p", "--progress", action="store_true", help="show progress bar"
+    )
     # weights obtained from project https://github.com/zymk9/yolov5_anime
     # Downloaded from https://drive.google.com/file/d/1-MO9RYPZxnBfpNiGY6GdsqCeQWYNxBdl/view?usp=sharing
     parser.add_argument(

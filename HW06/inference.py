@@ -1,5 +1,6 @@
 import argparse
 import glob
+import logging
 import sys
 from pathlib import Path
 from shutil import rmtree
@@ -14,9 +15,41 @@ from model import Generator
 from utils import fix_random_seed, load_config, setup_logger
 from yolov5_anime import predict as detect_faces
 
-# workaround for namespace collision
-# ref: https://github.com/pytorch/hub/issues/243#issuecomment-942403391
-sys.modules.pop("utils")
+logger = logging.getLogger(__name__)
+
+
+def inference_during_train(generator, step, device, save_dir=None, n_generate=1000):
+    if save_dir is None:
+        save_dir = Path(cfg.config.workspace_dir, f"temp_{step}")
+
+    try:
+        Path(save_dir).mkdir()
+    except FileExistsError:
+        rmtree(save_dir)
+        Path(save_dir).mkdir()
+
+    logger.info(f'Temporary dir "{save_dir}" created for inference during training.')
+
+    generator.eval()
+    z_samples = torch.randn(n_generate, cfg.config.z_dim).to(device)
+    with torch.no_grad():
+        imgs = (generator(z_samples) + 1) / 2.0
+
+    for i, img in enumerate(imgs):
+        torchvision.utils.save_image(img, Path(save_dir, f"{i:03}.jpg"))
+
+    fid_results, face_results = eval(save_dir, fid_valid_sets=cfg.config.valid_fid_set)
+
+    stats = {
+        "gen/fid": fid_results[cfg.config.valid_fid_set]["fid"],
+        "gen/kid": fid_results[cfg.config.valid_fid_set]["kid"],
+        "gen/afd": face_results["positive_rate"],
+    }
+
+    rmtree(save_dir)
+    logger.info(f'Temporary dir "{save_dir}" removed.')
+
+    return stats
 
 
 def inference(
@@ -69,8 +102,12 @@ def inference(
         plt.show()
 
 
-def eval(dir, save_to=None, overwrite=False, face_detection_thres=0.5):
-    fid_results = clean_fid.eval(dir)
+def eval(
+    dir, save_to=None, overwrite=False, fid_valid_sets=None, face_detection_thres=None
+):
+    if face_detection_thres is None:
+        face_detection_thres = cfg.config.valid_afd_thres
+    fid_results = clean_fid.eval(dir, valid_sets=fid_valid_sets)
     face_results = detect_faces(
         dir,
         weights="./yolov5x_anime.pt",
@@ -112,6 +149,8 @@ def eval(dir, save_to=None, overwrite=False, face_detection_thres=0.5):
 
             f.write("Negative list:\n")
             f.write("\n".join([f"\t{f}" for f in face_results["negative_list"]]))
+
+    return fid_results, face_results
 
 
 if __name__ == "__main__":
