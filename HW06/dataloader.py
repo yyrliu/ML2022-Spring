@@ -29,7 +29,7 @@ class CrypkoDataset(Dataset):
 
 def get_dataset(data_dir):
     logger.info(f"Loading dataset from {data_dir}")
-    fnames = glob.glob(f"{data_dir}/*")
+    fnames = glob.glob(f"{data_dir}/*.jpg")
     compose = [
         transforms.ToPILImage(),
         transforms.Resize((64, 64)),
