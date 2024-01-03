@@ -1,4 +1,6 @@
 import argparse
+import glob
+import sys
 from pathlib import Path
 from shutil import rmtree
 
@@ -6,9 +8,15 @@ import matplotlib.pyplot as plt
 import torch
 import torchvision
 
+import clean_fid
 import config as cfg
 from model import Generator
 from utils import fix_random_seed, load_config, setup_logger
+from yolov5_anime import predict as detect_faces
+
+# workaround for namespace collision
+# ref: https://github.com/pytorch/hub/issues/243#issuecomment-942403391
+sys.modules.pop("utils")
 
 
 def inference(
@@ -61,6 +69,51 @@ def inference(
         plt.show()
 
 
+def eval(dir, save_to=None, overwrite=False, face_detection_thres=0.5):
+    fid_results = clean_fid.eval(dir)
+    face_results = detect_faces(
+        dir,
+        weights="./yolov5x_anime.pt",
+        img_size=64,
+        thres=face_detection_thres,
+        list_negative=False,
+        pbar=True,
+        quiet=False,
+    )
+
+    if save_to is not None:
+        if Path(save_to).exists() and not overwrite:
+            raise FileExistsError(f"{save_to} exists! Write to file aborted.")
+
+        with open(save_to, "w") as f:
+            f.write(
+                f"Found {len(glob.glob(f'{dir}/*.jpg'))} images in {Path(dir).resolve()}\n"
+            )
+
+            f.write("\n---------- FID/KID ----------\n")
+
+            for key, fid_score in map(
+                lambda kv: (kv[0], kv[1]["fid"]), fid_results.items()
+            ):
+                f.write(f"FID - {key:<15} {fid_score:>10.1f}\n")
+
+            for key, kid_score in map(
+                lambda kv: (kv[0], kv[1]["kid"]), fid_results.items()
+            ):
+                f.write(f"KID - {key:<15} {kid_score:>10.4f}\n")
+
+            f.write("\n---------- Face Detection ----------\n")
+
+            f.write(f"Face detection threshold: {face_detection_thres}\n")
+
+            f.write(
+                f"Positive rate: {face_results['positive']} / {face_results['total']} = {face_results['positive_rate']:.4f}\n"
+            )
+
+            f.write("Negative list:\n")
+            f.write("\n".join([f"\t{f}" for f in face_results["negative_list"]]))
+
+
 if __name__ == "__main__":
     fix_random_seed(2022)
     parser = argparse.ArgumentParser()
@@ -73,6 +126,8 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model", help="Path to Generator checkpoint", type=str, default=None
     )
+    parser.add_argument("--no-eval", action="store_true")
+    parser.add_argument("--save_result", action="store_true")
     args = parser.parse_args()
 
     load_config(args.config)
@@ -82,3 +137,14 @@ if __name__ == "__main__":
         view=args.view,
         overwrite=args.force,
     )
+
+    if not args.no_eval:
+        dir_path = Path(cfg.config.workspace_dir, "output").resolve()
+        print(f"Evaluating generated images in {dir_path}")
+        eval(
+            dir_path,
+            save_to=dir_path.parent.joinpath("result.txt")
+            if args.save_result
+            else None,
+            overwrite=args.force,
+        )

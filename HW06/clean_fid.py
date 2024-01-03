@@ -1,19 +1,23 @@
 import argparse
+import glob
 from collections import defaultdict
 from functools import reduce
 from pathlib import Path
-import glob
 
 from cleanfid import fid
 
-def eval(dir, quiet):
+
+def eval(dir, quiet=False):
+    if isinstance(dir, Path):
+        dir = str(dir)
+
     valid_dirs = {
         "crypko": "./data/faces",
         "animeface": "./data/images",
         "animeface_2000": "./data/validate_set",
     }
-    
-    print(f"Found {len(glob.glob(f'{dir}/*'))} images in {Path(dir).resolve()}")
+
+    print(f"Found {len(glob.glob(f'{dir}/*.jpg'))} images in {Path(dir).resolve()}")
 
     results = defaultdict(dict)
 
@@ -25,11 +29,19 @@ def eval(dir, quiet):
 
         # Using the generated custom statistics
         fid_score = fid.compute_fid(
-            dir, dataset_name=dataset_name, mode="clean", dataset_split="custom", verbose=not quiet
+            dir,
+            dataset_name=dataset_name,
+            mode="clean",
+            dataset_split="custom",
+            verbose=not quiet,
         )
 
         kid_score = fid.compute_kid(
-            dir, dataset_name=dataset_name, mode="clean", dataset_split="custom", verbose=not quiet
+            dir,
+            dataset_name=dataset_name,
+            mode="clean",
+            dataset_split="custom",
+            verbose=not quiet,
         )
 
         results[dataset_name]["fid"] = fid_score
@@ -48,8 +60,15 @@ def eval(dir, quiet):
     for key, kid_score in map(lambda kv: (kv[0], kv[1]["kid"]), results.items()):
         print(f"KID - {key:<15} {kid_score:>10.4f}")
 
-    print(f"FID - {'Average':<15} {reduce(lambda r, v: v['fid'] + r, results.values(), 0) / len(results):>10.1f}")
-    print(f"KID - {'Average':<15} {reduce(lambda r, v: v['kid'] + r, results.values(), 0) / len(results):>10.4f}")
+    results["Average"] = {
+        "fid": reduce(lambda r, v: v["fid"] + r, results.values(), 0) / len(results),
+        "kid": reduce(lambda r, v: v["kid"] + r, results.values(), 0) / len(results),
+    }
+
+    print(f"FID - {'Average':<15} {results['Average']['fid']:>10.1f}")
+    print(f"KID - {'Average':<15} {results['Average']['fid']:>10.4f}")
+
+    return results
 
 
 if __name__ == "__main__":

@@ -5,7 +5,6 @@ from pathlib import Path
 import torch
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
-import matplotlib.pyplot as plt
 
 
 class FileDataset(Dataset):
@@ -21,7 +20,7 @@ class FileDataset(Dataset):
 
 
 def get_dataset(data_dir):
-    fnames = glob.glob(f"{data_dir}/*")
+    fnames = glob.glob(f"{data_dir}/*.jpg")
     dataset = FileDataset(fnames)
     return dataset
 
@@ -34,7 +33,7 @@ def predict(source, weights, img_size, thres, list_negative, pbar, quiet):
         "custom",
         path=weights,
         verbose=not quiet,
-        _verbose=not quiet
+        _verbose=not quiet,
     ).to(device)
 
     model.eval()
@@ -59,21 +58,42 @@ def predict(source, weights, img_size, thres, list_negative, pbar, quiet):
                 else:
                     nagative_list.append(outputs.files[i])
 
-    print(f"Positive rate: {positive} / {len(dataset)} = {positive / len(dataset)}")
+    results = {
+        "positive": positive,
+        "negative": len(dataset) - positive,
+        "total": len(dataset),
+        "positive_rate": positive / len(dataset),
+        "negative_list": sorted(
+            nagative_list, key=lambda f: int("".join(filter(str.isdigit, f)))
+        ),
+    }
+
+    print(
+        f"Positive rate: {results['positive']} / {results['total']} = {results['positive_rate']:.4f}"
+    )
+
     if list_negative:
         print("Negative list:")
-        for f in sorted(nagative_list, key=lambda f: int(''.join(filter(str.isdigit, f)))):
-            print(f"\t{f}")
+        print("\n".join([f"\t{f}" for f in results["negative_list"]]))
+
+    return results
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('source', type=str, help='source')
+    parser.add_argument("source", type=str, help="source")
     parser.add_argument("-q", "--quiet", action="store_true")
-    parser.add_argument('--pbar', action='store_true', help='show progress bar')
+    parser.add_argument("--pbar", action="store_true", help="show progress bar")
     # weights obtained from project https://github.com/zymk9/yolov5_anime
     # Downloaded from https://drive.google.com/file/d/1-MO9RYPZxnBfpNiGY6GdsqCeQWYNxBdl/view?usp=sharing
-    parser.add_argument('--weights', type=str, default='./yolov5x_anime.pt', help='model.pt path')
-    parser.add_argument('--thres', type=float, default=0.5, help='confidence threshold')
-    parser.add_argument('--img-size', type=int, default=64, help='inference size (pixels)')
-    parser.add_argument('--list-negative', action='store_true', help='list negative images')
+    parser.add_argument(
+        "--weights", type=str, default="./yolov5x_anime.pt", help="model.pt path"
+    )
+    parser.add_argument("--thres", type=float, default=0.5, help="confidence threshold")
+    parser.add_argument(
+        "--img-size", type=int, default=64, help="inference size (pixels)"
+    )
+    parser.add_argument(
+        "--list-negative", action="store_true", help="list negative images"
+    )
     predict(**vars(parser.parse_args()))
