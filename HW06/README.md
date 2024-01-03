@@ -32,11 +32,11 @@ Amine Face Dectection is based on [yolov5](https://github.com/ultralytics/yolov5
 
 To understand the effectiveness of the metrics, both metrics are validated with samples generate by untrained GAN model and cross-validated between real samples by `matrics_baseline.sh`
 
-FID/KID
+**FID/KID**
 
-![metrics_baseline_cm](./assets/metrics_baseline_cm.png)
+<img src="./assets/metrics_baseline_cm.png" alt="metrics_baseline_cm" width="800"/>
 
-Amine Face Dectection
+**Amine Face Dectection**
 
 | Entry            | positive rate |
 |------------------|---------------|
