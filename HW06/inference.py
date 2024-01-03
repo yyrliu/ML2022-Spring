@@ -12,7 +12,7 @@ from utils import fix_random_seed, load_config, setup_logger
 
 
 def inference(
-    checkpoint=None, n_generate=1000, n_output=100, show=False, overwrite=False
+    checkpoint=None, n_generate=1000, n_output=100, view=False, overwrite=False
 ):
     """
     1. G_path is the path for Generator ckpt
@@ -51,9 +51,9 @@ def inference(
         imgs = (generator(z_samples) + 1) / 2.0
 
     for i, img in enumerate(imgs):
-        torchvision.utils.save_image(img, Path(output_dir, f"{i+1:03}.jpg"))
+        torchvision.utils.save_image(img, Path(output_dir, f"{i:03}.jpg"))
 
-    if show:
+    if view:
         row, col = n_output // 10, 10
         grid_img = torchvision.utils.make_grid(imgs[:n_output].cpu(), nrow=row)
         plt.figure(figsize=(row, col))
@@ -64,9 +64,21 @@ def inference(
 if __name__ == "__main__":
     fix_random_seed(2022)
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", required=True, type=str, default="config.py")
-    parser.add_argument("--force", action="store_true")
+    parser.add_argument("config", type=str)
+    parser.add_argument(
+        "-n", "--samples", help="Number of samples to generate", type=int, default=1000
+    )
+    parser.add_argument("-f", "--force", action="store_true")
+    parser.add_argument("-v", "--view", action="store_true")
+    parser.add_argument(
+        "--model", help="Path to Generator checkpoint", type=str, default=None
+    )
     args = parser.parse_args()
 
     load_config(args.config)
-    inference(show=True, overwrite=args.force)
+    inference(
+        checkpoint=args.model,
+        n_generate=args.samples,
+        view=args.view,
+        overwrite=args.force,
+    )
