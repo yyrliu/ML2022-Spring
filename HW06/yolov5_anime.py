@@ -2,6 +2,7 @@ import argparse
 import glob
 from pathlib import Path
 
+import numpy as np
 import torch
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
@@ -25,7 +26,7 @@ def get_dataset(data_dir):
     return dataset
 
 
-def predict(source, weights, img_size, thres, list_negative, pbar, quiet):
+def predict(source, weights, img_size, thres, list_negative, progress, quiet, save_raw=False):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     model = torch.hub.load(
@@ -47,7 +48,11 @@ def predict(source, weights, img_size, thres, list_negative, pbar, quiet):
         f"Found {len(dataset)} images in {Path(source).resolve().relative_to(Path.cwd())}"
     )
 
-    if pbar and not quiet:
+    print(f"Face detection threshold: {thres}")
+
+    raw_results = []
+
+    if progress and not quiet:
         dataloader = tqdm(dataloader)
 
     with torch.no_grad():
@@ -59,6 +64,9 @@ def predict(source, weights, img_size, thres, list_negative, pbar, quiet):
                     positive += 1
                 else:
                     nagative_list.append(outputs.files[i])
+
+                if save_raw:
+                    raw_results.append(pred[0].cpu().numpy() if pred.shape[0] > 0 else np.zeros(6))
 
     results = {
         "positive": positive,
@@ -74,6 +82,9 @@ def predict(source, weights, img_size, thres, list_negative, pbar, quiet):
         f"Positive rate: {results['positive']} / {results['total']} = {results['positive_rate']:.4f}"
     )
 
+    if save_raw:
+        np.save(Path(source).resolve().joinpath("raw_results.npy"), np.asarray(raw_results))
+
     if list_negative:
         print("Negative list:")
         print("\n".join([f"\t{f}" for f in results["negative_list"]]))
@@ -81,11 +92,13 @@ def predict(source, weights, img_size, thres, list_negative, pbar, quiet):
     return results
 
 
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("source", type=str, help="source")
     parser.add_argument("-q", "--quiet", action="store_true")
-    parser.add_argument("--pbar", action="store_true", help="show progress bar")
+    parser.add_argument("-p", "--progress", action="store_true", help="show progress bar")
     # weights obtained from project https://github.com/zymk9/yolov5_anime
     # Downloaded from https://drive.google.com/file/d/1-MO9RYPZxnBfpNiGY6GdsqCeQWYNxBdl/view?usp=sharing
     parser.add_argument(
@@ -97,5 +110,8 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--list-negative", action="store_true", help="list negative images"
+    )
+    parser.add_argument(
+        "--save-raw", action="store_true", help="save raw results as numpy array"
     )
     predict(**vars(parser.parse_args()))

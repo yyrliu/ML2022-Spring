@@ -77,7 +77,7 @@ def eval(dir, save_to=None, overwrite=False, face_detection_thres=0.5):
         img_size=64,
         thres=face_detection_thres,
         list_negative=False,
-        pbar=True,
+        progress=True,
         quiet=False,
     )
 

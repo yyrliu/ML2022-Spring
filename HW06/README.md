@@ -34,13 +34,17 @@ To understand the effectiveness of the metrics, both metrics are validated with 
 
 **FID/KID**
 
-<img src="./assets/metrics_baseline_cm.png" alt="metrics_baseline_cm" width="800"/>
+<img src="./assets/fid_kid_baseline.png" alt="fid_kid_baseline" width="800"/>
 
 **Amine Face Dectection**
 
-| Entry            | positive rate |
-|------------------|---------------|
-| `untrained`      | 0.0 %         |
-| `crypko`         | 99.6 %        |
-| `animeface`      | 99.7 %        |
-| `animeface_2000` | 99.8 %        |
+
+<img src="./assets/afd_baseline.png" alt="afd_baseline" width="400"/>
+
+
+| Entry            | positive (thres=0.5) | positive (thres=0.895) | positive (thres=0.9) |
+|------------------|----------------------|------------------------|----------------------|
+| `untrained`      | 0.0 %                | 0.0 %                  | 0.0 %                |
+| `crypko`         | 99.6 %               | 69.6 %                 | 61.3 %               |
+| `animeface`      | 99.7 %               | 89.4 %                 | 84.5 %               |
+| `animeface_2000` | 99.8 %               | 88.2 %                 | 83.5 %               |
