@@ -31,7 +31,10 @@ def discriminator_train_one_step(
     discriminator.zero_grad()
     loss.backward()
     opt.step()
-    stats["d_loss"] = loss.item()
+    stats["dis/loss"] = loss.item()
+    stats["dis/r_acc"] = (r_logit > 0.5).float().mean().item()
+    stats["dis/f_acc"] = (f_logit < 0.5).float().mean().item()
+    stats["dis/score"] = (r_logit.mean() - f_logit.mean()).item()
     return stats
 
 
@@ -44,7 +47,8 @@ def generator_train_one_step(generator, discriminator, opt, loss_fn, device, sta
     generator.zero_grad()
     loss.backward()
     opt.step()
-    stats["g_loss"] = loss.item()
+    stats["gen/loss"] = loss.item()
+    stats["gen/score"] = f_logit.mean().item()
     return stats
 
 
@@ -103,7 +107,13 @@ def train(overwrite=False):
     discriminator = discriminator.to(device)
 
     step = 0
-    stats = {"d_loss": None, "g_loss": None}
+    stats = {
+        "dis/loss": None,
+        "dis/r_acc": None,
+        "dis/f_acc": None,
+        "gen/loss": None,
+        "gen/score": None,
+    }
 
     for epoch in range(cfg.config.n_epoch):
         progress_bar = tqdm(dataloader, desc=f"Epoch {epoch + 1}", leave=True)
@@ -115,13 +125,13 @@ def train(overwrite=False):
                 stats = generator_train_one_step(
                     generator, discriminator, opt_G, loss_fn_g, device, stats
                 )
-            progress_bar.set_postfix(loss_d=stats["d_loss"], loss_g=stats["g_loss"])
+            progress_bar.set_postfix(d_loss=stats["dis/loss"], g_loss=stats["gen/loss"], step=step, refresh=False)
             if cfg.config.use_wandb and step % cfg.config.log_step == 0:
-                wandb.log(stats)
+                wandb.log(stats, step=step)
             step += 1
 
         logger.info(
-            f"Epoch {epoch+1:02d} done: D_loss: {stats['d_loss']:.4f}, G_loss: {stats['g_loss']:.4f}"
+            f"Epoch {epoch+1:02d} done: D_loss: {stats['dis/loss']:.4f}, G_loss: {stats['gen/loss']:.4f}, G_score: {stats['gen/score']:.4f}"
         )
 
         img_sameple_path = f"{cfg.config.workspace_dir}/epoch_{epoch+1:02d}.jpg"
@@ -150,8 +160,8 @@ def intercept_and_show_img(imgs):
 if __name__ == "__main__":
     fix_random_seed(2022)
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", required=True, type=str, default="config.py")
-    parser.add_argument("--force", action="store_true")
+    parser.add_argument("config", type=str, default="config.py")
+    parser.add_argument("-f", "--force", action="store_true")
     args = parser.parse_args()
 
     load_config(args.config)
