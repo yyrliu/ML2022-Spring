@@ -1,7 +1,7 @@
 <<< Matrics of untrained model >>>
 
 ---------- FID/KID ----------
-Found 1000 images in /home/danielliu/side-projetcs/ML2022-Spring/HW06/exps/baseline_untrained/output
+Found 1000 images in exps/baseline_untrained/output
 FID - crypko               443.1
 FID - animeface            426.4
 FID - animeface_2000       431.5
@@ -11,14 +11,14 @@ KID - animeface_2000      0.5737
 FID - Average              433.7
 KID - Average             0.5782
 --- Amine Face Dectection ---
-Found 1000 images in /home/danielliu/side-projetcs/ML2022-Spring/HW06/exps/baseline_untrained/output
+Found 1000 images in exps/baseline_untrained/output
 Positive rate: 0 / 1000 = 0.0
 
 <<< Matrics of real pictures >>>
 
 ========== crypko ==========
 ---------- FID/KID ----------
-Found 71314 images in /home/danielliu/side-projetcs/ML2022-Spring/HW06/data/faces
+Found 71314 images in data/faces
 FID - crypko                 0.0
 FID - animeface             20.3
 FID - animeface_2000        60.5
@@ -28,12 +28,12 @@ KID - animeface_2000      0.0634
 FID - Average               26.9
 KID - Average             0.0272
 --- Amine Face Dectection ---
-Found 71314 images in /home/danielliu/side-projetcs/ML2022-Spring/HW06/data/faces
+Found 71314 images in data/faces
 Positive rate: 71050 / 71314 = 0.9962980620915949
 
 ========== animeface ==========
 ---------- FID/KID ----------
-Found 61565 images in /home/danielliu/side-projetcs/ML2022-Spring/HW06/data/images
+Found 61565 images in data/images
 FID - crypko                20.3
 FID - animeface              0.0
 FID - animeface_2000        32.0
@@ -43,12 +43,12 @@ KID - animeface_2000      0.0290
 FID - Average               17.4
 KID - Average             0.0157
 --- Amine Face Dectection ---
-Found 61565 images in /home/danielliu/side-projetcs/ML2022-Spring/HW06/data/images
+Found 61565 images in data/images
 Positive rate: 61401 / 61565 = 0.9973361487858361
 
 ========== animeface, n=2000, cropped to 64x64 ==========
 ---------- FID/KID ----------
-Found 2000 images in /home/danielliu/side-projetcs/ML2022-Spring/HW06/data/validate_set
+Found 2000 images in data/validate_set
 FID - crypko                60.5
 FID - animeface             32.0
 FID - animeface_2000         0.0
@@ -58,5 +58,5 @@ KID - animeface_2000     -0.0003
 FID - Average               30.8
 KID - Average             0.0306
 --- Amine Face Dectection ---
-Found 2000 images in /home/danielliu/side-projetcs/ML2022-Spring/HW06/data/validate_set
+Found 2000 images in data/validate_set
 Positive rate: 1996 / 2000 = 0.998

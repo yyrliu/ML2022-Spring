@@ -43,7 +43,9 @@ def predict(source, weights, img_size, thres, list_negative, pbar, quiet):
     dataset = get_dataset(source)
     dataloader = DataLoader(dataset, batch_size=96, shuffle=False)
 
-    print(f"Found {len(dataset)} images in {Path(source).resolve()}")
+    print(
+        f"Found {len(dataset)} images in {Path(source).resolve().relative_to(Path.cwd())}"
+    )
 
     if pbar and not quiet:
         dataloader = tqdm(dataloader)

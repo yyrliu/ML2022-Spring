@@ -17,7 +17,9 @@ def eval(dir, quiet=False):
         "animeface_2000": "./data/validate_set",
     }
 
-    print(f"Found {len(glob.glob(f'{dir}/*.jpg'))} images in {Path(dir).resolve()}")
+    print(
+        f"Found {len(glob.glob(f'{dir}/*.jpg'))} images in {Path(dir).resolve().relative_to(Path.cwd())}"
+    )
 
     results = defaultdict(dict)
 

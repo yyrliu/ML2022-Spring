@@ -1,4 +1,4 @@
-Found 1000 images in /home/danielliu/side-projetcs/ML2022-Spring/HW06/exps/baseline/output
+Found 1000 images in exps/baseline/output
 
 ---------- FID/KID ----------
 FID - crypko               359.4

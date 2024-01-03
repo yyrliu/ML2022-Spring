@@ -87,7 +87,7 @@ def eval(dir, save_to=None, overwrite=False, face_detection_thres=0.5):
 
         with open(save_to, "w") as f:
             f.write(
-                f"Found {len(glob.glob(f'{dir}/*.jpg'))} images in {Path(dir).resolve()}\n"
+                f"Found {len(glob.glob(f'{dir}/*.jpg'))} images in {Path(dir).resolve().relative_to(Path.cwd())}\n"
             )
 
             f.write("\n---------- FID/KID ----------\n")
