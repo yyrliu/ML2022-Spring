@@ -42,9 +42,16 @@ def gan_loss_fn_g(fake_logit):
     )
     return loss
 
+def wgan_loss_fn_d(real_logit, fake_logit):
+    return -torch.mean(real_logit) + torch.mean(fake_logit)
+
+def wgan_loss_fn_g(fake_logit):
+    return -torch.mean(fake_logit)
 
 def get_loss_fn(loss_type):
     if loss_type == "GAN":
         return gan_loss_fn_d, gan_loss_fn_g
+    elif loss_type == "WGAN":
+        return wgan_loss_fn_d, wgan_loss_fn_g
     else:
         raise NotImplementedError(f"loss_type {loss_type} not implemented")

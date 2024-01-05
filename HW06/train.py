@@ -13,6 +13,7 @@ import config as cfg
 import wandb
 from dataloader import get_dataset
 from inference import inference_during_train
+from opt import get_opt
 from loss_fn import get_loss_fn
 from model import Discriminator, Generator
 from utils import fix_random_seed, load_config, setup_logger
@@ -32,6 +33,12 @@ def discriminator_train_one_step(
     discriminator.zero_grad()
     loss.backward()
     opt.step()
+
+    if cfg.config.model_type == "WGAN":
+        with torch.no_grad():
+            for p in discriminator.parameters():
+                p.clamp_(-cfg.config.weight_clip, cfg.config.weight_clip)
+            
     stats["dis/loss"] = loss.item()
     stats["dis/r_acc"] = (r_logit > 0.5).float().mean().item()
     stats["dis/f_acc"] = (f_logit < 0.5).float().mean().item()
@@ -94,6 +101,8 @@ def train(overwrite=False):
     discriminator = Discriminator()
 
     loss_fn_d, loss_fn_g = get_loss_fn(cfg.config.model_type)
+
+    opt_D, opt_G = get_opt(cfg.config.model_type, discriminator.parameters(), generator.parameters(), cfg.config.lr)
 
     opt_D = torch.optim.Adam(
         discriminator.parameters(), lr=cfg.config.lr, betas=(0.5, 0.999)
