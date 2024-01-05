@@ -1,7 +1,6 @@
 import argparse
 import glob
 import logging
-import sys
 from pathlib import Path
 from shutil import rmtree
 
@@ -18,7 +17,7 @@ from yolov5_anime import predict as detect_faces
 logger = logging.getLogger(__name__)
 
 
-def inference_during_train(generator, step, device, save_dir=None, n_generate=1000):
+def inference_during_train(generator, step, device, stats, save_dir=None, n_generate=1000):
     if save_dir is None:
         save_dir = Path(cfg.config.workspace_dir, f"temp_{step}")
 
@@ -40,11 +39,14 @@ def inference_during_train(generator, step, device, save_dir=None, n_generate=10
 
     fid_results, face_results = eval(save_dir, fid_valid_sets=cfg.config.valid_fid_set)
 
-    stats = {
+    current_stats = {
         "gen/fid": fid_results[cfg.config.valid_fid_set]["fid"],
         "gen/kid": fid_results[cfg.config.valid_fid_set]["kid"],
         "gen/afd": face_results["positive_rate"],
     }
+
+    for key, value in current_stats.items():
+        stats[key].append(value)
 
     rmtree(save_dir)
     logger.info(f'Temporary dir "{save_dir}" removed.')

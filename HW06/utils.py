@@ -50,3 +50,6 @@ def setup_logger(proj, use_wandb=True):
         wandb.config.update(vars(cfg.arch_args))
 
     return logger
+
+def transpose_dict_to_list(d):
+    return [dict(zip(d, col)) for col in zip(*d.values())]

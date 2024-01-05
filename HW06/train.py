@@ -16,7 +16,7 @@ from inference import inference_during_train
 from opt import get_opt
 from loss_fn import get_loss_fn
 from model import Discriminator, Generator
-from utils import fix_random_seed, load_config, setup_logger
+from utils import fix_random_seed, load_config, setup_logger, transpose_dict_to_list
 
 
 def discriminator_train_one_step(
@@ -74,7 +74,7 @@ def save_checkpoint(generator, discriminator, ckpt_dir, epoch):
     )
 
 
-def train(overwrite=False):
+def train(overwrite=False, inference=False):
     logger = setup_logger("hw6.gan")
     logger.info(f"Training with config: {Path(cfg.config.workspace_dir)}/config.py")
 
@@ -125,6 +125,12 @@ def train(overwrite=False):
         "gen/score": None,
     }
 
+    inference_stats = {
+        "gen/fid": [],
+        "gen/kid": [],
+        "gen/afd": [],
+    }
+
     for epoch in range(cfg.config.n_epoch):
         progress_bar = tqdm(dataloader, desc=f"Epoch {epoch + 1}", leave=True)
         for data in progress_bar:
@@ -157,10 +163,13 @@ def train(overwrite=False):
             nrow=10,
         )
 
-        result = inference_during_train(generator, step, device)
+        if inference:
+            inference_stats = inference_during_train(generator, step, device, inference_stats)
 
         if cfg.config.use_wandb:
-            wandb.log(result, step=step, commit=False)
+            if inference:
+                last_inference_stats = transpose_dict_to_list(inference_stats)[-1]
+                wandb.log(last_inference_stats, step=step, commit=False)
             image = wandb.Image(img_sameple_path, caption=f"epoch_{epoch+1:02d}")
             wandb.log({"image": image}, step=step)
 
@@ -180,7 +189,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("config", type=str, default="config.py")
     parser.add_argument("-f", "--force", action="store_true")
+    parser.add_argument("-i", "--inference", action="store_true")
     args = parser.parse_args()
 
     load_config(args.config)
-    train(overwrite=args.force)
+    train(overwrite=args.force, inference=args.inference)
