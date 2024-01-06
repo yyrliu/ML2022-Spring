@@ -132,24 +132,38 @@ def train(overwrite=False, inference=False):
     }
 
     for epoch in range(cfg.config.n_epoch):
-        progress_bar = tqdm(dataloader, desc=f"Epoch {epoch + 1}", leave=True)
-        for data in progress_bar:
-            stats = discriminator_train_one_step(
-                discriminator, generator, data, opt_D, loss_fn_d, device, stats
-            )
-            if step % cfg.config.n_critic == 0:
+        with tqdm(total=len(dataloader), desc=f"Epoch {epoch + 1}", leave=True) as pbar:
+            data_iter = iter(dataloader)
+            while True:
+                stop = False
+                for _ in range(cfg.config.n_critic):
+                    try:
+                        stats = discriminator_train_one_step(
+                            discriminator, generator, next(data_iter), opt_D, loss_fn_d, device, stats
+                        )
+                    except StopIteration:
+                        stop = True
+                
                 stats = generator_train_one_step(
                     generator, discriminator, opt_G, loss_fn_g, device, stats
                 )
-            progress_bar.set_postfix(
-                d_loss=stats["dis/loss"],
-                g_loss=stats["gen/loss"],
-                step=step,
-                refresh=False,
-            )
-            if cfg.config.use_wandb and step % cfg.config.log_step == 0:
-                wandb.log(stats, step=step)
-            step += 1
+                    
+                pbar.set_postfix(
+                    d_loss=stats["dis/loss"],
+                    g_loss=stats["gen/loss"],
+                    step=step,
+                    refresh=False,
+                )
+
+                if cfg.config.use_wandb and step % cfg.config.log_step == 0:
+                    wandb.log(stats, step=step)
+                step += cfg.config.n_critic
+
+                if stop:
+                    break
+
+                pbar.update(cfg.config.n_critic)
+
 
         logger.info(
             f"Epoch {epoch+1:02d} done: D_loss: {stats['dis/loss']:.4f}, G_loss: {stats['gen/loss']:.4f}, G_score: {stats['gen/score']:.4f}"
