@@ -16,7 +16,7 @@ from inference import inference_during_train
 from opt import get_opt
 from loss_fn import get_loss_fn
 from model import Discriminator, Generator
-from utils import fix_random_seed, load_config, setup_logger, transpose_dict_to_list
+from utils import fix_random_seed, load_config, setup_logger, transpose_dict_to_list, comfirm_overwrite
 
 
 def discriminator_train_one_step(
@@ -78,17 +78,11 @@ def train(overwrite=False, inference=False):
     logger = setup_logger("hw6.gan")
     logger.info(f"Training with config: {Path(cfg.config.workspace_dir)}/config.py")
 
+    comfirm_overwrite([ f"{cfg.config.ckpt_dir}/*.pt", f"{cfg.config.workspace_dir}/epoch_*.jpg" ], overwrite)
+
     Path(cfg.config.ckpt_dir).mkdir(exist_ok=True)
     logger.info(f"Checkpoints will be saved in {cfg.config.ckpt_dir}")
-
-    if glob.glob(f"{cfg.config.ckpt_dir}/*.pt"):
-        if not overwrite:
-            raise ValueError(f"Existing checkpoints found, training aborted.")
-        else:
-            logger.warning(
-                f"Existing checkpoints found, training will overwrite checkpoints."
-            )
-
+        
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     logger.info(f"Using device {device}")
 

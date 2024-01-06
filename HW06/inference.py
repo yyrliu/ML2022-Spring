@@ -11,7 +11,7 @@ import torchvision
 import clean_fid
 import config as cfg
 from model import Generator
-from utils import fix_random_seed, load_config, setup_logger
+from utils import fix_random_seed, load_config, setup_logger, comfirm_overwrite
 from yolov5_anime import predict as detect_faces
 
 logger = logging.getLogger(__name__)
@@ -66,15 +66,8 @@ def inference(
 
     output_dir = Path(cfg.config.workspace_dir, "output")
 
-    try:
-        Path(output_dir).mkdir()
-    except FileExistsError as e:
-        if not overwrite:
-            logger.error("Output directory exists! Inference aborted.")
-            raise e
-        logger.warning("Output will be overwritten...")
-        rmtree(output_dir)
-        Path(output_dir).mkdir()
+    comfirm_overwrite(f"{cfg.config.workspace_dir}/output/*", overwrite)
+    Path(output_dir).mkdir(exist_ok=True)
 
     if checkpoint is None:
         checkpoint = sorted(
@@ -121,8 +114,7 @@ def eval(
     )
 
     if save_to is not None:
-        if Path(save_to).exists() and not overwrite:
-            raise FileExistsError(f"{save_to} exists! Write to file aborted.")
+        comfirm_overwrite(save_to, overwrite)
 
         with open(save_to, "w") as f:
             f.write(
