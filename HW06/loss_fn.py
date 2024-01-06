@@ -33,20 +33,32 @@ def gan_loss_fn_d(real_logit, fake_logit):
     fake_loss = F.binary_cross_entropy(
         fake_logit, torch.zeros_like(fake_logit, device=real_logit.device)
     )
-    return (real_loss + fake_loss) / 2
+    loss = (real_loss + fake_loss) / 2
+    r_acc = (real_logit > 0.5).float().mean().item()
+    f_acc = (real_logit < 0.5).float().mean().item()
+    score = real_logit.mean() - fake_logit.mean().item()
+    return loss, (r_acc, f_acc, score)
 
 
 def gan_loss_fn_g(fake_logit):
     loss = F.binary_cross_entropy(
         fake_logit, torch.ones_like(fake_logit, device=fake_logit.device)
     )
-    return loss
+    score = fake_logit.mean().item()
+    return loss, score
 
 def wgan_loss_fn_d(real_logit, fake_logit):
-    return -torch.mean(real_logit) + torch.mean(fake_logit)
+    loss = -torch.mean(real_logit) + torch.mean(fake_logit)
+    
+    logit_mean = torch.cat([real_logit, fake_logit]).mean().item()
+    r_acc = ((real_logit - logit_mean) > 0).float().mean().item()
+    f_acc = ((fake_logit - logit_mean) < 0).float().mean().item()
+    return loss, (r_acc, f_acc, None)
 
 def wgan_loss_fn_g(fake_logit):
-    return -torch.mean(fake_logit)
+    loss = -torch.mean(fake_logit)
+    score = torch.mean(fake_logit).item()
+    return loss, score
 
 def get_loss_fn(loss_type):
     if loss_type == "GAN":

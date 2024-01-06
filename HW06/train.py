@@ -29,7 +29,7 @@ def discriminator_train_one_step(
     r_imgs = r_imgs.to(device)
     r_logit = discriminator(r_imgs)
     f_logit = discriminator(f_imgs)
-    loss = loss_fn(r_logit, f_logit)
+    loss, (r_acc, f_acc, score) = loss_fn(r_logit, f_logit)
     discriminator.zero_grad()
     loss.backward()
     opt.step()
@@ -40,9 +40,9 @@ def discriminator_train_one_step(
                 p.clamp_(-cfg.config.weight_clip, cfg.config.weight_clip)
             
     stats["dis/loss"] = loss.item()
-    stats["dis/r_acc"] = (r_logit > 0.5).float().mean().item()
-    stats["dis/f_acc"] = (f_logit < 0.5).float().mean().item()
-    stats["dis/score"] = (r_logit.mean() - f_logit.mean()).item()
+    stats["dis/r_acc"] = r_acc
+    stats["dis/f_acc"] = f_acc
+    stats["dis/score"] = score
     return stats
 
 
@@ -51,12 +51,12 @@ def generator_train_one_step(generator, discriminator, opt, loss_fn, device, sta
     z = torch.randn(cfg.config.batch_size, cfg.config.z_dim).to(device)
     f_imgs = generator(z)
     f_logit = discriminator(f_imgs)
-    loss = loss_fn(f_logit)
+    loss, score = loss_fn(f_logit)
     generator.zero_grad()
     loss.backward()
     opt.step()
     stats["gen/loss"] = loss.item()
-    stats["gen/score"] = f_logit.mean().item()
+    stats["gen/score"] = score
     return stats
 
 
@@ -103,13 +103,6 @@ def train(overwrite=False, inference=False):
     loss_fn_d, loss_fn_g = get_loss_fn(cfg.config.model_type)
 
     opt_D, opt_G = get_opt(cfg.config.model_type, discriminator.parameters(), generator.parameters(), cfg.config.lr)
-
-    opt_D = torch.optim.Adam(
-        discriminator.parameters(), lr=cfg.config.lr, betas=(0.5, 0.999)
-    )
-    opt_G = torch.optim.Adam(
-        generator.parameters(), lr=cfg.config.lr, betas=(0.5, 0.999)
-    )
 
     z_samples = torch.randn(100, cfg.config.z_dim).to(device)
 
