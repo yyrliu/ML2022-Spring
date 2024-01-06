@@ -28,7 +28,7 @@ def load_config(config_path):
     config_path = Path(config_path).resolve().relative_to(Path.cwd())
     config = import_module(str(config_path).replace(".py", "").replace("/", "."))
     cfg.config = Namespace(**config.config)
-    cfg.arch_args = Namespace(**config.arch_args)
+    cfg.arch_args = Namespace(**(cfg.default_arch_args | config.arch_args))
     cfg.config.workspace_dir = str(config_path.parent)
     cfg.config.ckpt_dir = str(Path(cfg.config.workspace_dir, "checkpoints"))
 

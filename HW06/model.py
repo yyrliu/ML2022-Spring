@@ -1,5 +1,5 @@
 import torch.nn as nn
-
+import config as cfg
 
 # Generator
 class Generator(nn.Module):
@@ -80,7 +80,7 @@ class Discriminator(nn.Module):
         # NOTE FOR SETTING DISCRIMINATOR:
         # Remove last sigmoid layer for WGAN
 
-        self.l1 = nn.Sequential(
+        layers = nn.Sequential(
             nn.Conv2d(
                 in_dim, feature_dim, kernel_size=4, stride=2, padding=1
             ),  # (batch, 3, 32, 32)
@@ -89,8 +89,11 @@ class Discriminator(nn.Module):
             self.conv_bn_lrelu(feature_dim * 2, feature_dim * 4),  # (batch, 3, 8, 8)
             self.conv_bn_lrelu(feature_dim * 4, feature_dim * 8),  # (batch, 3, 4, 4)
             nn.Conv2d(feature_dim * 8, 1, kernel_size=4, stride=1, padding=0),
-            nn.Sigmoid(),
         )
+        if cfg.arch_args.d_last_activation == "sigmoid":
+            layers.append(nn.Sigmoid())
+        
+        self.l1 = nn.Sequential(*layers)
         self.apply(weights_init)
 
     def conv_bn_lrelu(self, in_dim, out_dim):

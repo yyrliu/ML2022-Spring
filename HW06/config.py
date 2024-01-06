@@ -16,4 +16,6 @@ arch_config = Namespace()
 #     "log_step": 50,
 # }
 
-# arch_args = {}
+default_arch_args = {
+    "d_last_activation": "sigmoid",
+}

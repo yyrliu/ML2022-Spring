@@ -13,4 +13,6 @@ config = {
     "valid_afd_thres": 0.895,
 }
 
-arch_args = {}
+arch_args = {
+    "d_last_activation": "sigmoid",
+}
