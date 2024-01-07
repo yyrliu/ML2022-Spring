@@ -104,10 +104,10 @@ class Discriminator(nn.Module):
         """
 
         if norm == "bn":
-            norm_layer = nn.BatchNorm2d,
+            norm_layer = nn.BatchNorm2d
         
         elif norm == "in":
-            norm_layer = nn.InstanceNorm2d,
+            norm_layer = nn.InstanceNorm2d
             
         else:
             raise NotImplementedError("norm must be bn or in")
