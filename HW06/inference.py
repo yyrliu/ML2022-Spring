@@ -144,6 +144,8 @@ def eval(
             f.write("Negative list:\n")
             f.write("\n".join([f"\t{f}" for f in face_results["negative_list"]]))
 
+        print(f"Result saved to {save_to}")
+
     return fid_results, face_results
 
 
