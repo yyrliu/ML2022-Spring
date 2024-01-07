@@ -73,7 +73,7 @@ def eval(dir, quiet=False, valid_sets=None):
     }
 
     print(f"FID - {'Average':<15} {results['Average']['fid']:>10.1f}")
-    print(f"KID - {'Average':<15} {results['Average']['fid']:>10.4f}")
+    print(f"KID - {'Average':<15} {results['Average']['kid']:>10.4f}")
 
     return results
 
