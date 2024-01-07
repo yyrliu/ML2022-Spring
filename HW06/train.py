@@ -1,5 +1,5 @@
 import argparse
-import glob
+from numbers import Number
 import os
 from pathlib import Path
 
@@ -43,6 +43,8 @@ def discriminator_train_one_step(
     stats["dis/r_acc"] = r_acc
     stats["dis/f_acc"] = f_acc
     stats["dis/score"] = score
+    stats["dis/r_dist"] = r_logit.detach().cpu().numpy()
+    stats["dis/f_dist"] = f_logit.detach().cpu().numpy()
     return stats
 
 
@@ -57,6 +59,7 @@ def generator_train_one_step(generator, discriminator, opt, loss_fn, device, sta
     opt.step()
     stats["gen/loss"] = loss.item()
     stats["gen/score"] = score
+    stats["gen/f_dist"] = f_logit.detach().cpu().numpy()
     return stats
 
 
@@ -143,7 +146,10 @@ def train(overwrite=False, inference=False):
                 )
 
                 if cfg.config.use_wandb and step % cfg.config.log_step == 0:
-                    wandb.log(stats, step=step)
+                    hist_stats = { k: wandb.Histogram(v) for k, v in stats.items() if k.endswith("_dist") }
+                    scalar_stats = { k: v for k, v in stats.items() if isinstance(v, Number) }
+                    wandb.log(hist_stats, step=step, commit=False)
+                    wandb.log(scalar_stats, step=step)
                 step += cfg.config.n_critic
 
                 if stop:
@@ -153,7 +159,7 @@ def train(overwrite=False, inference=False):
 
 
         logger.info(
-            f"Epoch {epoch+1:02d} done: D_loss: {stats['dis/loss']:.4f}, G_loss: {stats['gen/loss']:.4f}, G_score: {stats['gen/score']:.4f}"
+            f"Epoch {epoch+1:02d} done: D_loss: {stats['dis/loss']:.4f}, G_loss: {stats['gen/loss']:.4f}"
         )
 
         img_sameple_path = f"{cfg.config.workspace_dir}/epoch_{epoch+1:02d}.jpg"
