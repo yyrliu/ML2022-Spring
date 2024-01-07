@@ -11,13 +11,15 @@ import torchvision
 import clean_fid
 import config as cfg
 from model import Generator
-from utils import fix_random_seed, load_config, setup_logger, comfirm_overwrite
+from utils import comfirm_overwrite, fix_random_seed, load_config, setup_logger
 from yolov5_anime import predict as detect_faces
 
 logger = logging.getLogger(__name__)
 
 
-def inference_during_train(generator, step, device, stats, save_dir=None, n_generate=1000):
+def inference_during_train(
+    generator, step, device, stats, save_dir=None, n_generate=1000
+):
     if save_dir is None:
         save_dir = Path(cfg.config.workspace_dir, f"temp_{step}")
 

@@ -1,5 +1,7 @@
 import torch.nn as nn
+
 import config as cfg
+
 
 # Generator
 class Generator(nn.Module):
@@ -85,14 +87,22 @@ class Discriminator(nn.Module):
                 in_dim, feature_dim, kernel_size=4, stride=2, padding=1, bias=bias
             ),  # (batch, 3, 32, 32)
             nn.LeakyReLU(0.2),
-            self.conv_bn_lrelu(feature_dim, feature_dim * 2, bias, norm),  # (batch, 3, 16, 16)
-            self.conv_bn_lrelu(feature_dim * 2, feature_dim * 4, bias, norm),  # (batch, 3, 8, 8)
-            self.conv_bn_lrelu(feature_dim * 4, feature_dim * 8, bias, norm),  # (batch, 3, 4, 4)
-            nn.Conv2d(feature_dim * 8, 1, kernel_size=4, stride=1, padding=0, bias=bias),
+            self.conv_bn_lrelu(
+                feature_dim, feature_dim * 2, bias, norm
+            ),  # (batch, 3, 16, 16)
+            self.conv_bn_lrelu(
+                feature_dim * 2, feature_dim * 4, bias, norm
+            ),  # (batch, 3, 8, 8)
+            self.conv_bn_lrelu(
+                feature_dim * 4, feature_dim * 8, bias, norm
+            ),  # (batch, 3, 4, 4)
+            nn.Conv2d(
+                feature_dim * 8, 1, kernel_size=4, stride=1, padding=0, bias=bias
+            ),
         )
         if cfg.arch_args.d_last_activation == "sigmoid":
             self.l1.append(nn.Sigmoid())
-        
+
         self.apply(weights_init)
 
     def conv_bn_lrelu(self, in_dim, out_dim, bias, norm):
@@ -105,13 +115,13 @@ class Discriminator(nn.Module):
 
         if norm == "bn":
             norm_layer = nn.BatchNorm2d
-        
+
         elif norm == "in":
             norm_layer = nn.InstanceNorm2d
-            
+
         else:
             raise NotImplementedError("norm must be bn or in")
-        
+
         return nn.Sequential(
             nn.Conv2d(in_dim, out_dim, 4, 2, 1, bias=bias),
             norm_layer(out_dim),

@@ -19,5 +19,5 @@ arch_config = Namespace()
 default_arch_args = {
     "d_last_activation": "sigmoid",
     "d_conv_bias": True,
-    "d_conv_norm": "bn"
+    "d_conv_norm": "bn",
 }

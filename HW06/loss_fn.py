@@ -47,18 +47,20 @@ def gan_loss_fn_g(fake_logit):
     score = fake_logit.mean().item()
     return loss, score
 
+
 def wgan_loss_fn_d(real_logit, fake_logit):
     loss = -torch.mean(real_logit) + torch.mean(fake_logit)
-    
     logit_mean = torch.cat([real_logit, fake_logit]).mean().item()
     r_acc = ((real_logit - logit_mean) > 0).float().mean().item()
     f_acc = ((fake_logit - logit_mean) < 0).float().mean().item()
     return loss, (r_acc, f_acc, None)
 
+
 def wgan_loss_fn_g(fake_logit):
     loss = -torch.mean(fake_logit)
     score = torch.mean(fake_logit).item()
     return loss, score
+
 
 def get_loss_fn(loss_type):
     if loss_type == "GAN":

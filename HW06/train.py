@@ -1,6 +1,6 @@
 import argparse
-from numbers import Number
 import os
+from numbers import Number
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -13,10 +13,16 @@ import config as cfg
 import wandb
 from dataloader import get_dataset
 from inference import inference_during_train
-from opt import get_opt
 from loss_fn import get_loss_fn
 from model import Discriminator, Generator
-from utils import fix_random_seed, load_config, setup_logger, transpose_dict_to_list, comfirm_overwrite
+from opt import get_opt
+from utils import (
+    comfirm_overwrite,
+    fix_random_seed,
+    load_config,
+    setup_logger,
+    transpose_dict_to_list,
+)
 
 
 def discriminator_train_one_step(
@@ -38,7 +44,7 @@ def discriminator_train_one_step(
         with torch.no_grad():
             for p in discriminator.parameters():
                 p.clamp_(-cfg.config.weight_clip, cfg.config.weight_clip)
-            
+
     stats["dis/loss"] = loss.item()
     stats["dis/r_acc"] = r_acc
     stats["dis/f_acc"] = f_acc
@@ -82,12 +88,14 @@ def train(overwrite=False, inference=False):
     logger.info(f"Training with config: {Path(cfg.config.workspace_dir)}/config.py")
 
     image_samples_dir = str(Path(cfg.config.workspace_dir, "preview"))
-    comfirm_overwrite([ f"{cfg.config.ckpt_dir}/*.pt", f"{image_samples_dir}/epoch_*.jpg" ], overwrite)
+    comfirm_overwrite(
+        [f"{cfg.config.ckpt_dir}/*.pt", f"{image_samples_dir}/epoch_*.jpg"], overwrite
+    )
 
     Path(cfg.config.ckpt_dir).mkdir(exist_ok=True)
     Path(image_samples_dir).mkdir(exist_ok=True)
     logger.info(f"Checkpoints will be saved in {cfg.config.ckpt_dir}")
-        
+
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     logger.info(f"Using device {device}")
 
@@ -97,11 +105,18 @@ def train(overwrite=False, inference=False):
     )
 
     generator = Generator(cfg.config.z_dim)
-    discriminator = Discriminator(bias=cfg.arch_args.d_conv_bias, norm=cfg.arch_args.d_conv_norm)
+    discriminator = Discriminator(
+        bias=cfg.arch_args.d_conv_bias, norm=cfg.arch_args.d_conv_norm
+    )
 
     loss_fn_d, loss_fn_g = get_loss_fn(cfg.config.model_type)
 
-    opt_D, opt_G = get_opt(cfg.config.model_type, discriminator.parameters(), generator.parameters(), cfg.config.lr)
+    opt_D, opt_G = get_opt(
+        cfg.config.model_type,
+        discriminator.parameters(),
+        generator.parameters(),
+        cfg.config.lr,
+    )
 
     z_samples = torch.randn(100, cfg.config.z_dim).to(device)
 
@@ -131,15 +146,21 @@ def train(overwrite=False, inference=False):
                 for _ in range(cfg.config.n_critic):
                     try:
                         stats = discriminator_train_one_step(
-                            discriminator, generator, next(data_iter), opt_D, loss_fn_d, device, stats
+                            discriminator,
+                            generator,
+                            next(data_iter),
+                            opt_D,
+                            loss_fn_d,
+                            device,
+                            stats,
                         )
                     except StopIteration:
                         stop = True
-                
+
                 stats = generator_train_one_step(
                     generator, discriminator, opt_G, loss_fn_g, device, stats
                 )
-                    
+
                 pbar.set_postfix(
                     d_loss=stats["dis/loss"],
                     g_loss=stats["gen/loss"],
@@ -148,8 +169,14 @@ def train(overwrite=False, inference=False):
                 )
 
                 if cfg.config.use_wandb and step % cfg.config.log_step == 0:
-                    hist_stats = { k: wandb.Histogram(v) for k, v in stats.items() if k.endswith("_dist") }
-                    scalar_stats = { k: v for k, v in stats.items() if isinstance(v, Number) }
+                    hist_stats = {
+                        k: wandb.Histogram(v)
+                        for k, v in stats.items()
+                        if k.endswith("_dist")
+                    }
+                    scalar_stats = {
+                        k: v for k, v in stats.items() if isinstance(v, Number)
+                    }
                     wandb.log(hist_stats, step=step, commit=False)
                     wandb.log(scalar_stats, step=step)
                 step += cfg.config.n_critic
@@ -158,7 +185,6 @@ def train(overwrite=False, inference=False):
                     break
 
                 pbar.update(cfg.config.n_critic)
-
 
         logger.info(
             f"Epoch {epoch+1:02d} done: D_loss: {stats['dis/loss']:.4f}, G_loss: {stats['gen/loss']:.4f}"
@@ -173,7 +199,9 @@ def train(overwrite=False, inference=False):
         )
 
         if inference:
-            inference_stats = inference_during_train(generator, step, device, inference_stats)
+            inference_stats = inference_during_train(
+                generator, step, device, inference_stats
+            )
 
         if cfg.config.use_wandb:
             if inference:
