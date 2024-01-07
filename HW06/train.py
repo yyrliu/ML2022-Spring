@@ -91,7 +91,7 @@ def train(overwrite=False, inference=False):
         dataset, batch_size=cfg.config.batch_size, shuffle=True, num_workers=8
     )
 
-    generator = Generator(cfg.config.z_dim)
+    generator = Generator(cfg.config.z_dim, bias=cfg.arch_config.d_conv_bias, norm=cfg.arch_config.d_conv_norm)
     discriminator = Discriminator()
 
     loss_fn_d, loss_fn_g = get_loss_fn(cfg.config.model_type)

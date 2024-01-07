@@ -72,7 +72,7 @@ class Discriminator(nn.Module):
     Output shape: (batch)
     """
 
-    def __init__(self, in_dim=3, feature_dim=64):
+    def __init__(self, in_dim=3, feature_dim=64, bias=False, norm="bn"):
         super(Discriminator, self).__init__()
 
         # input: (batch, 3, 64, 64)
@@ -80,23 +80,22 @@ class Discriminator(nn.Module):
         # NOTE FOR SETTING DISCRIMINATOR:
         # Remove last sigmoid layer for WGAN
 
-        layers = nn.Sequential(
+        self.l1 = nn.Sequential(
             nn.Conv2d(
-                in_dim, feature_dim, kernel_size=4, stride=2, padding=1
+                in_dim, feature_dim, kernel_size=4, stride=2, padding=1, bias=bias
             ),  # (batch, 3, 32, 32)
             nn.LeakyReLU(0.2),
-            self.conv_bn_lrelu(feature_dim, feature_dim * 2),  # (batch, 3, 16, 16)
-            self.conv_bn_lrelu(feature_dim * 2, feature_dim * 4),  # (batch, 3, 8, 8)
-            self.conv_bn_lrelu(feature_dim * 4, feature_dim * 8),  # (batch, 3, 4, 4)
-            nn.Conv2d(feature_dim * 8, 1, kernel_size=4, stride=1, padding=0),
+            self.conv_bn_lrelu(feature_dim, feature_dim * 2, bias, norm),  # (batch, 3, 16, 16)
+            self.conv_bn_lrelu(feature_dim * 2, feature_dim * 4, bias, norm),  # (batch, 3, 8, 8)
+            self.conv_bn_lrelu(feature_dim * 4, feature_dim * 8, bias, norm),  # (batch, 3, 4, 4)
+            nn.Conv2d(feature_dim * 8, 1, kernel_size=4, stride=1, padding=0, bias=bias),
         )
         if cfg.arch_args.d_last_activation == "sigmoid":
-            layers.append(nn.Sigmoid())
+            self.l1.append(nn.Sigmoid())
         
-        self.l1 = nn.Sequential(*layers)
         self.apply(weights_init)
 
-    def conv_bn_lrelu(self, in_dim, out_dim):
+    def conv_bn_lrelu(self, in_dim, out_dim, bias, norm):
         """
         NOTE FOR SETTING DISCRIMINATOR:
 
@@ -104,9 +103,18 @@ class Discriminator(nn.Module):
         Use nn.InstanceNorm2d instead
         """
 
+        if norm == "bn":
+            norm_layer = nn.BatchNorm2d,
+        
+        elif norm == "in":
+            norm_layer = nn.InstanceNorm2d,
+            
+        else:
+            raise NotImplementedError("norm must be bn or in")
+        
         return nn.Sequential(
-            nn.Conv2d(in_dim, out_dim, 4, 2, 1),
-            nn.BatchNorm2d(out_dim),
+            nn.Conv2d(in_dim, out_dim, 4, 2, 1, bias=bias),
+            norm_layer(out_dim),
             nn.LeakyReLU(0.2),
         )
 
