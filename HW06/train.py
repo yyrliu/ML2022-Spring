@@ -106,7 +106,7 @@ def train(overwrite=False, inference=False):
 
     generator = Generator(cfg.config.z_dim)
     discriminator = Discriminator(
-        bias=cfg.arch_args.d_conv_bias, norm=cfg.arch_args.d_conv_norm
+        last_activ=cfg.arch_args.d_last_activation, bias=cfg.arch_args.d_conv_bias, norm=cfg.arch_args.d_conv_norm
     )
 
     loss_fn_d, loss_fn_g = get_loss_fn(cfg.config.model_type)

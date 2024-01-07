@@ -1,421 +1,459 @@
 Found 1000 images in exps/wgan_wc001_lr1e-4_ncr5_noBias/output
 
 ---------- FID/KID ----------
-FID - crypko               147.7
-FID - animeface            143.0
-FID - animeface_2000       114.0
-FID - Average              134.9
-KID - crypko              0.1471
-KID - animeface           0.1400
-KID - animeface_2000      0.0987
-KID - Average             0.1286
+FID - crypko               155.0
+FID - animeface            150.4
+FID - animeface_2000       121.5
+FID - Average              142.3
+KID - crypko              0.1607
+KID - animeface           0.1539
+KID - animeface_2000      0.1113
+KID - Average             0.1420
 
 ---------- Face Detection ----------
 Face detection threshold: 0.895
-Positive rate: 595 / 1000 = 0.5950
+Positive rate: 557 / 1000 = 0.5570
 Negative list:
-	002.jpg
+	000.jpg
+	001.jpg
+	004.jpg
 	005.jpg
-	006.jpg
+	008.jpg
 	009.jpg
 	010.jpg
-	011.jpg
+	013.jpg
 	014.jpg
 	015.jpg
-	022.jpg
+	016.jpg
+	018.jpg
+	019.jpg
+	025.jpg
 	026.jpg
 	028.jpg
+	030.jpg
+	031.jpg
+	032.jpg
 	036.jpg
-	037.jpg
+	038.jpg
+	039.jpg
 	040.jpg
-	041.jpg
+	042.jpg
+	043.jpg
+	044.jpg
 	046.jpg
+	047.jpg
 	048.jpg
-	049.jpg
 	051.jpg
-	052.jpg
 	054.jpg
 	056.jpg
-	057.jpg
 	058.jpg
-	059.jpg
-	063.jpg
+	060.jpg
 	064.jpg
+	065.jpg
 	066.jpg
-	071.jpg
+	069.jpg
 	072.jpg
 	074.jpg
-	075.jpg
+	079.jpg
 	082.jpg
-	083.jpg
 	084.jpg
 	085.jpg
 	086.jpg
-	089.jpg
+	088.jpg
 	091.jpg
-	094.jpg
-	095.jpg
-	097.jpg
+	098.jpg
+	099.jpg
 	100.jpg
+	101.jpg
+	102.jpg
+	103.jpg
 	104.jpg
 	106.jpg
-	108.jpg
-	114.jpg
+	107.jpg
 	115.jpg
-	119.jpg
+	117.jpg
 	120.jpg
 	121.jpg
 	122.jpg
-	124.jpg
 	125.jpg
 	126.jpg
 	128.jpg
+	129.jpg
 	131.jpg
 	133.jpg
-	135.jpg
-	136.jpg
+	134.jpg
 	137.jpg
-	138.jpg
-	140.jpg
-	141.jpg
 	142.jpg
 	143.jpg
+	144.jpg
 	145.jpg
+	146.jpg
 	147.jpg
 	148.jpg
-	151.jpg
-	157.jpg
-	159.jpg
+	149.jpg
+	150.jpg
+	154.jpg
 	161.jpg
 	162.jpg
-	163.jpg
+	165.jpg
+	166.jpg
+	167.jpg
 	170.jpg
 	171.jpg
-	175.jpg
-	181.jpg
+	172.jpg
+	173.jpg
+	174.jpg
 	183.jpg
-	185.jpg
 	186.jpg
 	191.jpg
-	196.jpg
+	195.jpg
 	197.jpg
 	199.jpg
+	200.jpg
+	201.jpg
 	202.jpg
 	204.jpg
-	209.jpg
+	206.jpg
+	207.jpg
+	208.jpg
 	210.jpg
-	211.jpg
-	213.jpg
-	214.jpg
 	215.jpg
+	216.jpg
 	217.jpg
-	220.jpg
+	219.jpg
+	221.jpg
 	225.jpg
 	226.jpg
+	227.jpg
+	229.jpg
 	231.jpg
-	235.jpg
-	236.jpg
-	237.jpg
+	232.jpg
+	233.jpg
 	238.jpg
+	239.jpg
 	240.jpg
 	242.jpg
-	244.jpg
+	243.jpg
+	245.jpg
 	246.jpg
-	247.jpg
-	250.jpg
-	251.jpg
+	249.jpg
+	252.jpg
 	253.jpg
-	254.jpg
-	255.jpg
-	257.jpg
 	259.jpg
 	261.jpg
-	266.jpg
-	272.jpg
-	275.jpg
-	280.jpg
-	281.jpg
+	263.jpg
+	264.jpg
+	265.jpg
+	267.jpg
+	268.jpg
+	273.jpg
+	277.jpg
+	278.jpg
+	279.jpg
 	282.jpg
+	283.jpg
 	284.jpg
-	286.jpg
 	288.jpg
 	292.jpg
 	293.jpg
-	296.jpg
+	295.jpg
 	297.jpg
-	300.jpg
-	309.jpg
-	311.jpg
+	301.jpg
+	302.jpg
+	303.jpg
+	313.jpg
+	315.jpg
+	316.jpg
+	317.jpg
+	319.jpg
 	320.jpg
 	322.jpg
-	323.jpg
+	324.jpg
+	326.jpg
 	329.jpg
-	332.jpg
+	330.jpg
+	331.jpg
+	333.jpg
+	334.jpg
 	335.jpg
 	336.jpg
-	337.jpg
 	339.jpg
-	342.jpg
-	345.jpg
+	344.jpg
+	346.jpg
 	348.jpg
-	351.jpg
+	350.jpg
 	352.jpg
 	353.jpg
 	355.jpg
-	360.jpg
+	356.jpg
+	357.jpg
+	361.jpg
 	362.jpg
-	363.jpg
 	365.jpg
-	366.jpg
-	370.jpg
+	368.jpg
 	371.jpg
+	372.jpg
 	373.jpg
 	374.jpg
-	375.jpg
-	378.jpg
-	381.jpg
-	382.jpg
+	377.jpg
+	379.jpg
 	383.jpg
+	385.jpg
+	386.jpg
+	387.jpg
 	388.jpg
 	392.jpg
-	406.jpg
+	397.jpg
+	398.jpg
+	400.jpg
 	407.jpg
+	408.jpg
 	411.jpg
-	414.jpg
-	417.jpg
-	418.jpg
-	419.jpg
-	420.jpg
-	422.jpg
-	423.jpg
-	424.jpg
-	427.jpg
-	431.jpg
-	434.jpg
-	435.jpg
+	412.jpg
+	415.jpg
+	426.jpg
+	429.jpg
+	430.jpg
+	432.jpg
 	437.jpg
-	444.jpg
-	446.jpg
+	438.jpg
+	439.jpg
+	440.jpg
+	443.jpg
+	447.jpg
 	448.jpg
-	449.jpg
-	450.jpg
-	452.jpg
+	451.jpg
+	453.jpg
 	456.jpg
+	457.jpg
 	459.jpg
-	460.jpg
 	461.jpg
 	463.jpg
-	464.jpg
+	467.jpg
 	470.jpg
-	473.jpg
-	477.jpg
+	476.jpg
 	478.jpg
-	480.jpg
-	483.jpg
+	484.jpg
+	485.jpg
 	486.jpg
 	487.jpg
 	488.jpg
 	490.jpg
-	492.jpg
-	493.jpg
+	491.jpg
 	494.jpg
-	495.jpg
-	497.jpg
-	498.jpg
+	496.jpg
 	499.jpg
-	500.jpg
-	501.jpg
 	502.jpg
 	503.jpg
+	504.jpg
+	506.jpg
 	507.jpg
-	508.jpg
-	510.jpg
+	509.jpg
 	512.jpg
 	514.jpg
 	515.jpg
 	517.jpg
+	520.jpg
 	521.jpg
 	522.jpg
+	524.jpg
+	527.jpg
+	528.jpg
 	529.jpg
+	531.jpg
 	532.jpg
 	534.jpg
 	536.jpg
-	537.jpg
 	539.jpg
 	540.jpg
+	541.jpg
+	542.jpg
+	545.jpg
 	548.jpg
+	549.jpg
 	551.jpg
 	552.jpg
-	554.jpg
-	558.jpg
-	561.jpg
+	557.jpg
+	559.jpg
+	560.jpg
 	564.jpg
-	567.jpg
+	565.jpg
+	566.jpg
+	569.jpg
 	570.jpg
+	571.jpg
 	573.jpg
-	577.jpg
-	578.jpg
-	583.jpg
-	584.jpg
-	586.jpg
-	591.jpg
-	592.jpg
+	575.jpg
+	585.jpg
+	588.jpg
+	590.jpg
+	594.jpg
 	596.jpg
 	598.jpg
-	608.jpg
+	599.jpg
+	605.jpg
 	610.jpg
 	611.jpg
+	612.jpg
 	613.jpg
-	615.jpg
-	619.jpg
+	614.jpg
 	621.jpg
-	624.jpg
+	622.jpg
 	626.jpg
+	627.jpg
 	628.jpg
+	632.jpg
 	634.jpg
-	635.jpg
-	636.jpg
 	637.jpg
+	638.jpg
 	641.jpg
 	643.jpg
-	644.jpg
-	648.jpg
-	650.jpg
-	652.jpg
-	654.jpg
+	645.jpg
+	646.jpg
+	647.jpg
+	649.jpg
+	656.jpg
+	657.jpg
 	659.jpg
+	660.jpg
 	663.jpg
 	665.jpg
 	667.jpg
-	668.jpg
 	670.jpg
 	672.jpg
+	673.jpg
+	676.jpg
 	677.jpg
-	678.jpg
-	681.jpg
 	682.jpg
-	683.jpg
+	685.jpg
+	687.jpg
+	690.jpg
 	691.jpg
-	694.jpg
-	695.jpg
+	696.jpg
 	697.jpg
-	704.jpg
-	705.jpg
-	708.jpg
-	713.jpg
+	700.jpg
+	703.jpg
+	707.jpg
+	709.jpg
+	712.jpg
 	715.jpg
 	716.jpg
-	717.jpg
-	719.jpg
 	720.jpg
-	722.jpg
 	723.jpg
+	726.jpg
 	728.jpg
-	731.jpg
+	729.jpg
+	730.jpg
 	732.jpg
+	734.jpg
+	736.jpg
+	737.jpg
+	738.jpg
 	740.jpg
-	743.jpg
-	744.jpg
-	747.jpg
+	746.jpg
 	748.jpg
+	750.jpg
 	755.jpg
+	756.jpg
+	758.jpg
 	759.jpg
-	763.jpg
-	765.jpg
-	768.jpg
+	760.jpg
+	761.jpg
+	770.jpg
+	771.jpg
+	774.jpg
 	775.jpg
 	777.jpg
 	778.jpg
-	779.jpg
-	784.jpg
+	782.jpg
 	786.jpg
-	787.jpg
+	788.jpg
+	789.jpg
 	790.jpg
-	793.jpg
-	798.jpg
-	799.jpg
+	791.jpg
+	796.jpg
 	801.jpg
-	802.jpg
-	804.jpg
 	805.jpg
-	811.jpg
-	812.jpg
-	815.jpg
+	806.jpg
+	808.jpg
+	809.jpg
+	810.jpg
+	814.jpg
+	816.jpg
 	817.jpg
 	818.jpg
-	820.jpg
-	821.jpg
 	822.jpg
-	823.jpg
-	825.jpg
+	827.jpg
 	828.jpg
+	829.jpg
+	830.jpg
 	831.jpg
-	833.jpg
+	832.jpg
 	834.jpg
-	835.jpg
-	840.jpg
+	837.jpg
+	839.jpg
 	841.jpg
-	843.jpg
 	847.jpg
-	850.jpg
 	852.jpg
-	853.jpg
+	854.jpg
 	855.jpg
-	859.jpg
+	857.jpg
 	860.jpg
-	863.jpg
+	861.jpg
+	862.jpg
 	865.jpg
 	867.jpg
-	869.jpg
-	870.jpg
 	872.jpg
 	873.jpg
-	878.jpg
+	874.jpg
+	876.jpg
+	877.jpg
 	879.jpg
-	880.jpg
+	881.jpg
 	883.jpg
-	884.jpg
-	886.jpg
-	889.jpg
+	888.jpg
 	891.jpg
 	892.jpg
+	893.jpg
 	894.jpg
 	895.jpg
-	898.jpg
-	900.jpg
+	896.jpg
+	897.jpg
+	903.jpg
 	905.jpg
-	913.jpg
-	917.jpg
+	906.jpg
+	910.jpg
+	911.jpg
+	912.jpg
+	916.jpg
 	918.jpg
-	920.jpg
-	922.jpg
-	924.jpg
+	919.jpg
+	921.jpg
 	925.jpg
-	929.jpg
-	931.jpg
-	935.jpg
+	927.jpg
+	930.jpg
+	932.jpg
+	933.jpg
 	938.jpg
-	941.jpg
-	946.jpg
+	944.jpg
 	947.jpg
-	949.jpg
 	953.jpg
-	954.jpg
 	955.jpg
-	956.jpg
-	957.jpg
-	963.jpg
-	965.jpg
-	969.jpg
+	958.jpg
+	961.jpg
+	962.jpg
+	964.jpg
+	967.jpg
 	970.jpg
-	971.jpg
 	973.jpg
-	976.jpg
-	980.jpg
+	978.jpg
+	979.jpg
+	981.jpg
+	982.jpg
+	984.jpg
 	985.jpg
-	986.jpg
-	991.jpg
+	989.jpg
+	992.jpg
 	994.jpg
 	996.jpg
-	997.jpg
 	998.jpg

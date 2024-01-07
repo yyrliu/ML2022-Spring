@@ -74,7 +74,7 @@ class Discriminator(nn.Module):
     Output shape: (batch)
     """
 
-    def __init__(self, in_dim=3, feature_dim=64, bias=False, norm="bn"):
+    def __init__(self, in_dim=3, feature_dim=64, last_activ="sigmoid", bias=False, norm="bn"):
         super(Discriminator, self).__init__()
 
         # input: (batch, 3, 64, 64)
@@ -100,7 +100,7 @@ class Discriminator(nn.Module):
                 feature_dim * 8, 1, kernel_size=4, stride=1, padding=0, bias=bias
             ),
         )
-        if cfg.arch_args.d_last_activation == "sigmoid":
+        if last_activ == "sigmoid":
             self.l1.append(nn.Sigmoid())
 
         self.apply(weights_init)

@@ -16,4 +16,5 @@ config = {
 
 arch_args = {
     "d_conv_bias": False,
+    "d_last_activation": None,
 }
