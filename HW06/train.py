@@ -81,9 +81,11 @@ def train(overwrite=False, inference=False):
     logger = setup_logger("hw6.gan")
     logger.info(f"Training with config: {Path(cfg.config.workspace_dir)}/config.py")
 
-    comfirm_overwrite([ f"{cfg.config.ckpt_dir}/*.pt", f"{cfg.config.workspace_dir}/epoch_*.jpg" ], overwrite)
+    image_samples_dir = str(Path(cfg.config.workspace_dir, "preview"))
+    comfirm_overwrite([ f"{cfg.config.ckpt_dir}/*.pt", f"{image_samples_dir}/epoch_*.jpg" ], overwrite)
 
     Path(cfg.config.ckpt_dir).mkdir(exist_ok=True)
+    Path(image_samples_dir).mkdir(exist_ok=True)
     logger.info(f"Checkpoints will be saved in {cfg.config.ckpt_dir}")
         
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -162,7 +164,7 @@ def train(overwrite=False, inference=False):
             f"Epoch {epoch+1:02d} done: D_loss: {stats['dis/loss']:.4f}, G_loss: {stats['gen/loss']:.4f}"
         )
 
-        img_sameple_path = f"{cfg.config.workspace_dir}/epoch_{epoch+1:02d}.jpg"
+        img_sameple_path = f"{image_samples_dir}/epoch_{epoch+1:02d}.jpg"
         f_imgs_sample = gen_samples(generator, z_samples)
         torchvision.utils.save_image(
             f_imgs_sample,
